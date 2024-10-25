@@ -192,7 +192,7 @@ class DigitalObjectRoutine(Routine):
         data = {"storage_uri": package.storage_uri, "use_statement": package.use_statement}
         transformed = self.get_transformed_object(data, SourcePackage, SourcePackageToDigitalObject)
         transfer_component = self.aspace_client.retrieve(package.archivesspace_transfer)
-        transformed['title'] = transfer_component['title']
+        transformed['title'] = transfer_component['display_string']
         if package.origin == 'digitization':
             transformed['publish'] = True
         do_uri = self.aspace_client.create(transformed, "digital object").get("uri")
