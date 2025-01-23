@@ -1,2 +1,4 @@
-def run_tests():
+from src.transform import PackageTransformer
+
+def test_run():
     pass
