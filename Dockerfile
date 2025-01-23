@@ -1,8 +1,14 @@
-FROM python:3.10
-
-ENV PYTHONUNBUFFERED 1
-RUN mkdir /code
+FROM python:3.11-slim-buster AS base
 WORKDIR /code
-ADD requirements.txt /code/
-RUN pip install --upgrade pip && pip install -r requirements.txt
-ADD . /code/
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY src src
+COPY rac_schemas/schemas schemas
+
+FROM base AS test
+COPY test_requirements.txt .coveragerc ./
+RUN pip install -r test_requirements.txt
+COPY tests tests
+
+FROM base AS build
+CMD [ "python", "src/transform.py" ]

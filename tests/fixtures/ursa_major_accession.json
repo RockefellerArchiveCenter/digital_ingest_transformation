@@ -1,0 +1,100 @@
+{
+    "url": "http://10.0.1.90:8005/accessions/111/",
+    "data": {
+        "url": "https://aurora.dev.rockarch.org/api/accessions/2/",
+        "title": "Donor Organization, Custard Pie Appreciation Consortium, Desperate Dan Appreciation Society grant records",
+        "created": "2021-08-20T15:18:51.295292-04:00",
+        "creators": [
+            {
+                "name": "Custard Pie Appreciation Consortium",
+                "type": "organization"
+            },
+            {
+                "name": "Desperate Dan Appreciation Society",
+                "type": "organization"
+            }
+        ],
+        "end_date": "2002-06-21T00:00:00-04:00",
+        "language": "eng",
+        "resource": "/repositories/2/resources/123",
+        "transfers": [
+            {
+                "url": "https://aurora.dev.rockarch.org/api/transfers/1653/",
+                "identifier": "d643dc73-35d5-4971-b7a3-d7eb717464b4",
+                "created_time": "2021-08-20T09:59:02.810484-04:00",
+                "modified_time": "2021-08-20T15:18:51.347907-04:00"
+            },
+            {
+                "url": "https://aurora.dev.rockarch.org/api/transfers/1655/",
+                "identifier": "4fc45f0a-5f14-456c-bac5-2f7b191ef886",
+                "created_time": "2021-08-20T09:59:05.988175-04:00",
+                "modified_time": "2021-08-20T15:18:52.238689-04:00"
+            },
+            {
+                "url": "https://aurora.dev.rockarch.org/api/transfers/1657/",
+                "identifier": "bf4cf2d7-4aeb-4dea-a8ee-d634ce366aba",
+                "created_time": "2021-08-20T09:59:09.188921-04:00",
+                "modified_time": "2021-08-20T15:18:53.133168-04:00"
+            }
+        ],
+        "start_date": "2000-05-13T00:00:00-04:00",
+        "description": "Grant awarded to the Village Green Preservation Society for the purpose of \"preserving the old ways from being abused, protecting the new ways for me and for you\"",
+        "extent_size": 1287321,
+        "extent_files": 21,
+        "organization": "Donor Organization",
+        "last_modified": "2021-08-20T15:18:51.295313-04:00",
+        "accession_date": "2021-08-20T15:18:51.295154-04:00",
+        "appraisal_note": "",
+        "process_status": 10,
+        "accession_number": null,
+        "acquisition_type": "deposit",
+        "use_restrictions": "Donor organization retains copyright",
+        "rights_statements": [
+            {
+                "terms": null,
+                "end_date": "2122-06-21",
+                "basis_note": "Donor organization retains copyright",
+                "start_date": "2000-05-13",
+                "other_basis": null,
+                "jurisdiction": "us",
+                "rights_basis": "copyright",
+                "rights_granted": [],
+                "copyright_status": "unknown",
+                "statute_citation": null,
+                "determination_date": "2021-08-11"
+            },
+            {
+                "terms": null,
+                "end_date": "2012-06-21",
+                "basis_note": "Records are available for onsite research after a 10 year embargo.",
+                "start_date": "2000-05-13",
+                "other_basis": "donor",
+                "jurisdiction": null,
+                "rights_basis": "other",
+                "rights_granted": [
+                    {
+                        "act": "publish",
+                        "end_date": "2002-06-21",
+                        "start_date": "2000-05-13",
+                        "granted_note": "These can't go online",
+                        "grant_restriction": "disallow"
+                    },
+                    {
+                        "act": "disseminate",
+                        "end_date": "2012-06-21",
+                        "start_date": "2000-05-13",
+                        "granted_note": "10 year embargo in effect",
+                        "grant_restriction": "disallow"
+                    }
+                ],
+                "copyright_status": null,
+                "statute_citation": null,
+                "determination_date": null
+            }
+        ],
+        "access_restrictions": "10 year embargo in effect Records are available for onsite research after a 10 year embargo. These can't go online",
+        "archivesspace_identifier": null
+    },
+    "created": "2021-08-20T19:19:17.990278Z",
+    "last_modified": "2021-08-20T19:19:17.990325Z"
+}

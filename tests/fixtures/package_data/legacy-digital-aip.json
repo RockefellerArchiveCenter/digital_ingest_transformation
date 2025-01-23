@@ -1,0 +1,7 @@
+{
+    "uri": "http://fedora.dev.rockarch.org:8080/fedora/rest/237c875d-9072-4495-9875-9e1837dab2a8",
+    "identifier": "69ef97fe-c837-418a-9c3c-7246a4a36e5b",
+    "archivesspace_uri": "/repositories/2/archival_objects/1234",
+    "package_type": "aip",
+    "origin": "legacy_digital"
+}

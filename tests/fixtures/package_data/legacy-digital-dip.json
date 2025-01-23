@@ -1,0 +1,7 @@
+{
+    "uri": "http://fedora.dev.rockarch.org:8080/fedora/rest/ac15614d-3a59-4281-9d41-51e38fcc84c3",
+    "identifier": "69ef97fe-c837-418a-9c3c-7246a4a36e5b",
+    "archivesspace_uri": "/repositories/2/archival_objects/1234",
+    "package_type": "dip",
+    "origin": "legacy_digital"
+}
