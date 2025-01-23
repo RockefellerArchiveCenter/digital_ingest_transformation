@@ -1,14 +1,14 @@
-*.DS_Store
-.archivessnake.yml
-*.pickle
-*config.py
-
-### Django ###
 *.log
 *.pot
 *.pyc
+.idea
+.tox
 __pycache__/
 local_settings.py
 db.sqlite3
 media
+
+config.py
+
 env/
+static/
