@@ -31,6 +31,9 @@ class PackageTransformer():
         self.transform_digital_object()
         self.update_archival_object()
         self.update_aurora()
+        self.deliver_start_notification()
+        self.deliver_success_notification()
+        self.deliver_failure_notification()
 
     def get_transformed_object(self):
         """Transforms data into the target object.
@@ -207,6 +210,101 @@ class PackageTransformer():
         # message = "Update requests sent." if len(update_ids) else "No update requests pending"
         # return (message, update_ids)
     pass
+
+    def deliver_start_notification(self):
+        """Send notification of service start"""
+    #     client = get_client_with_role('sns', self.role_arn)
+    #     client.publish(
+    #         TopicArn=self.sns_topic,
+    #         Message=f'Discovery for {self.package_id} started.',
+    #         MessageAttributes={
+    #             'package_id': {
+    #                 'DataType': 'String',
+    #                 'StringValue': self.package_id,
+    #             },
+    #             'service': {
+    #                 'DataType': 'String',
+    #                 'StringValue': self.service_name,
+    #             },
+    #             'outcome': {
+    #                 'DataType': 'String',
+    #                 'StringValue': 'STARTED',
+    #             }
+    #         })
+    #     logging.debug('Start notification delivered.')
+        pass
+
+    def deliver_success_notification(self):
+        """Send SNS message about successful job.
+
+        Args:
+            package_path (pathlib.Path): location of the package binary
+            data (dict): data about the package
+        """
+        # client = get_client_with_role('sns', self.role_arn)
+        # TODO evaluate what package data is and how stable that model is over time
+        # package_data['package_path'] = package_path
+        # client.publish(
+        #     TopicArn=self.sns_topic,
+        #     Message=f'Package {self.package_id} successfully discovered.',
+        #     MessageAttributes={
+        #         'package_id': {
+        #             'DataType': 'String',
+        #             'StringValue': self.package_id,
+        #         },
+        #         'service': {
+        #             'DataType': 'String',
+        #             'StringValue': self.service_name,
+        #         },
+        #         'outcome': {
+        #             'DataType': 'String',
+        #             'StringValue': 'SUCCESS',
+        #         },
+        #         'package_data': {
+        #             'DataType': 'String',
+        #             'StringValue': json.dumps(package_data),
+        #         },
+        #     })
+        # logging.debug('Success notification delivered.')
+        pass
+
+    def deliver_failure_notification(self):
+        """Send SNS message about failed job.
+
+        Args:
+            package_path (pathlib.Path): location of the package binary
+            data (dict): data about the package
+            exception (Exception): the exception that was thrown.
+        """
+        # client = get_client_with_role('sns', self.role_arn)
+        # tb = ''.join(traceback.format_exception(exception)[:-1])
+        # client.publish(
+        #     TopicArn=self.sns_topic,
+        #     Message=f'Package {self.package_id} failed during discovery.',
+        #     MessageAttributes={
+        #         'package_id': {
+        #             'DataType': 'String',
+        #             'StringValue': self.package_id,
+        #         },
+        #         'service': {
+        #             'DataType': 'String',
+        #             'StringValue': self.service_name,
+        #         },
+        #         'outcome': {
+        #             'DataType': 'String',
+        #             'StringValue': 'FAILURE',
+        #         },
+        #         'message': {
+        #             'DataType': 'String',
+        #             'StringValue': str(exception),
+        #         },
+        #         'traceback': {
+        #             'DataType': 'String',
+        #             'StringValue': tb,
+        #         }
+        #     })
+        # logging.debug('Failure notification delivered.')
+        pass
 
 
 if __name__ == "__main__":
