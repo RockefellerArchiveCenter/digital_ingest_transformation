@@ -13,6 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='package',
             name='process_status',
-            field=models.CharField(choices=[(10, 'Transfer saved'), (20, 'Accession record created'), (30, 'Grouping component created'), (40, 'Transfer component created'), (50, 'Digital object created'), (60, 'Updated data sent to Aurora')], max_length=50),
+            field=models.CharField(choices=[(10, 'Transfer saved'), (20, 'Accession record created'), (30, 'Grouping component created'),
+                                   (40, 'Transfer component created'), (50, 'Digital object created'), (60, 'Updated data sent to Aurora')], max_length=50),
         ),
     ]

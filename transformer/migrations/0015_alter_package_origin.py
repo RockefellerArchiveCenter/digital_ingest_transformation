@@ -13,6 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='package',
             name='origin',
-            field=models.CharField(choices=[('aurora', 'Aurora'), ('legacy_digital', 'Legacy Digital Processing'), ('digitization', 'Digitization'), ('av_digitization', 'Audiovisual Digitization')], default='aurora', max_length=20),
+            field=models.CharField(choices=[('aurora', 'Aurora'), ('legacy_digital', 'Legacy Digital Processing'), ('digitization',
+                                   'Digitization'), ('av_digitization', 'Audiovisual Digitization')], default='aurora', max_length=20),
         ),
     ]

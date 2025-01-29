@@ -89,7 +89,8 @@ class ArchivesSpaceClient(object):
         current_year = str(date.today().year)
         try:
             query = json.dumps({"query": {"field": "four_part_id", "value": current_year, "jsonmodel_type": "field_query"}})
-            r = self.client.get("repositories/{}/search".format(self.repo_id), params={"page": 1, "type[]": "accession", "sort": "identifier desc", "aq": query}).json()
+            r = self.client.get("repositories/{}/search".format(self.repo_id), params={"page": 1,
+                                "type[]": "accession", "sort": "identifier desc", "aq": query}).json()
             number = "1"
             if r.get("total_hits") >= 1:
                 if r["results"][0]["identifier"].split("-")[0] == current_year:

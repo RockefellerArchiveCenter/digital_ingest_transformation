@@ -30,7 +30,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='package',
             name='type',
-            field=models.CharField(blank=True, choices=[('aip', 'Archival Information Package'), ('dip', 'Dissemination Information Package')], max_length=50, null=True),
+            field=models.CharField(blank=True, choices=[('aip', 'Archival Information Package'),
+                                   ('dip', 'Dissemination Information Package')], max_length=50, null=True),
         ),
         migrations.AlterField(
             model_name='package',
