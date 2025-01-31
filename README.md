@@ -19,21 +19,6 @@ docker run aquarius
 
 This repository is intended to be deployed as an ECS Task in AWS infrastructure.
 
-### Routes
-
-| Method | URL | Parameters | Response  | Behavior  |
-|--------|-----|---|---|---|
-|POST|/packages| |200|Saves new package objects|
-|GET|/packages| |200|Returns a list of packages|
-|GET|/packages/{id}| |200|Returns data about an individual package|
-|POST|/accessions| |200|Runs the AccessionRoutine process|
-|POST|/grouping-components| |200|Runs the GroupingComponentRoutine process|
-|POST|/transfer-components| |200|Runs the TransferComponentRoutine process|
-|POST|/digital-objects| |200|Runs the DigitalObjectRoutine process|
-|POST|/send-update| |200|Sends updated transfer data to Aurora|
-|POST|/send-accession-update| |200|Sends updated accession data to Aurora|
-|GET|/status||200|Return the status of the microservice|
-
 ### ArchivesSpace configuration
 
 In order to successfully save data to ArchivesSpace, you will have to make some changes to some of the default enumerations:
