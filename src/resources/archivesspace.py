@@ -1,7 +1,5 @@
 import odin
 
-from aquarius import settings
-
 from . import resource_configs
 
 """ArchivesSpace resources."""
@@ -152,7 +150,7 @@ class ArchivesSpaceComponentBase(odin.Resource):
     linked_agents = odin.ArrayOf(ArchivesSpaceLinkedAgent)
     notes = odin.ArrayOf(ArchivesSpaceNote)
     publish = odin.BooleanField(default=False)
-    repository = odin.DictField(default={"ref": "/repositories/{}".format(settings.ARCHIVESSPACE['repo_id'])})
+    repository = odin.DictField(default={"ref": "/repositories/{}".format(2)})  # TODO set repo id via config
     rights_statements = odin.ArrayOf(ArchivesSpaceRightsStatement)
     title = odin.StringField(null=True)
     uri = odin.StringField()
@@ -210,4 +208,4 @@ class ArchivesSpaceDigitalObject(odin.Resource):
     title = odin.StringField()
     digital_object_id = odin.IntegerField()
     file_versions = odin.ArrayOf(ArchivesSpaceFileVersion)
-    repository = odin.DictField(default={"ref": "/repositories/{}".format(settings.ARCHIVESSPACE['repo_id'])})
+    repository = odin.DictField(default={"ref": "/repositories/{}".format(2)})  # TODO set repo id via config

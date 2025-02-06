@@ -3,13 +3,11 @@ from datetime import date
 
 from asnake.client import ASnakeClient
 from electronbonder.client import ElectronBond
+from requests import Session
+from requests.exceptions import HTTPError
 
 
 class ArchivesSpaceClientError(Exception):
-    pass
-
-
-class UrsaMajorClientError(Exception):
     pass
 
 
@@ -62,13 +60,15 @@ class ArchivesSpaceClient(object):
         Attempts to find and return an object in ArchivesSpace.
         If the object is not found, creates and returns a new object.
         """
+        # TODO look at this a bit more closely, might be an opportunity to use it more directly
         model_type = self.TYPE_LIST[type][0]
         endpoint = self.TYPE_LIST[type][1]
+        modified_since_backoff = 360
         query = json.dumps({"query": {"field": field, "value": value, "jsonmodel_type": "field_query"}})
         try:
             r = self.client.get("repositories/{}/search".format(self.repo_id), params={"page": 1, "type[]": model_type, "aq": query}).json()
             if len(r["results"]) == 0:
-                r = self.client.get(endpoint, params={"all_ids": True, "modified_since": last_updated - 120}).json()
+                r = self.client.get(endpoint, params={"all_ids": True, "modified_since": last_updated - modified_since_backoff}).json()
                 for ref in r:
                     r = self.client.get("{}/{}".format(endpoint, ref)).json()
                     if r[field] == str(value):
@@ -102,45 +102,6 @@ class ArchivesSpaceClient(object):
             raise ArchivesSpaceClientError("Error retrieving next accession number from ArchivesSpace: {}".format(e))
 
 
-class UrsaMajorClient(object):
-    """Client to get and receive data from Ursa Major."""
-
-    def __init__(self, baseurl):
-        self.client = ElectronBond(baseurl=baseurl)
-
-    def send_request(self, method, url, data=None, **kwargs):
-        """Base class for sending requests to Ursa Major"""
-        try:
-            return getattr(self.client, method)(url, data=json.dumps(data), **kwargs).json()
-        except Exception as e:
-            raise UrsaMajorClientError("Error sending {} request to {}: {}".format(method, url, e))
-
-    def retrieve(self, url, *args, **kwargs):
-        return self.send_request("get", url, **kwargs)
-
-    def update(self, url, data, **kwargs):
-        return self.send_request("put", url, data, headers={"Content-Type": "application/json"}, **kwargs)
-
-    def retrieve_paged(self, url, **kwargs):
-        try:
-            resp = self.client.get_paged(url, **kwargs)
-            return resp
-        except Exception as e:
-            raise UrsaMajorClientError("Error retrieving list from Ursa Major: {}".format(e))
-
-    def find_bag_by_id(self, identifier, **kwargs):
-        """Finds a bag by its id."""
-        try:
-            bag_resp = self.client.get("bags/", params={"id": identifier}).json()
-            count = bag_resp.get("count")
-            if count != 1:
-                raise UrsaMajorClientError("Found {} bags matching id {}, expected 1".format(count, identifier))
-            bag_url = bag_resp.get("results")[0]["url"]
-            return self.retrieve(bag_url)
-        except Exception as e:
-            raise UrsaMajorClientError("Error finding bag by id: {}".format(e))
-
-
 class AuroraClient:
     """Client to update data in Aurora."""
 
@@ -166,3 +127,23 @@ class AuroraClient:
             return resp.json()
         else:
             raise AuroraClientError("Error sending request {} to Aurora: {}".format(url, resp.text))
+
+
+class ZodiacClient(object):
+
+    def __init__(self, baseurl, api_key):
+        self.session = Session()
+        self.session.headers.update({
+            'Accept': 'application/json',
+            'X-Api-Key': api_key
+        })
+        self.baseurl = baseurl.rstrip('/')
+
+    def get(self, uri):
+        url = f'{self.baseurl}/{uri.lstrip("/")}'
+        try:
+            resp = self.session.get(url)
+            resp.raise_for_status()
+            return resp.json()
+        except HTTPError:
+            raise Exception(f"Error fetching url {url}: {resp.status_code} {resp.text}")

@@ -1,13 +1,28 @@
-# from .clients import ArchivesSpaceClient, UrsaMajorClient
+import json
+import logging
+import traceback
+from os import getenv
+from time import time
 
-# from .mappings import (SourceAccessionToArchivesSpaceAccession,
-#                       SourceAccessionToGroupingComponent,
-#                       SourcePackageToDigitalObject,
-#                       SourceRightsStatementToArchivesSpaceRightsStatement,
-#                       SourceTransferToTransferComponent, map_agents)
+from odin.codecs import json_codec
 
-# from .resources.source import (SourceAccession, SourceCreator, SourcePackage,
-#                                SourceRightsStatement, SourceTransfer)
+from .clients import ArchivesSpaceClient, AuroraClient, ZodiacClient
+from .helpers import (get_client_with_role, get_transformed_object,
+                      handle_open_dates)
+from .mappings import (SourceAccessionToArchivesSpaceAccession,
+                       SourceAccessionToGroupingComponent,
+                       SourcePackageToDigitalObject,
+                       SourceRightsStatementToArchivesSpaceRightsStatement,
+                       SourceTransferToTransferComponent, map_agents)
+from .resources.source import (SourceAccession, SourceCreator, SourcePackage,
+                               SourceRightsStatement, SourceTransfer)
+
+logging.basicConfig(
+    level=int(getenv('LOGGING_LEVEL', logging.INFO)),
+    format='%(filename)s::%(funcName)s::%(lineno)s %(message)s')
+
+# TODO tidy up docstrings
+# TODO implement logging
 
 
 class PackageTransformer():
@@ -20,62 +35,58 @@ class PackageTransformer():
         Transfer: Handles transfer objects and relationships to metadata
         Digital Object: Creates digital objects in AS and updates archival objects"""
 
-    # def __init__(self):
-    #    self.aspace_client = ArchivesSpaceClient(**settings.ARCHIVESSPACE)
-    #    self.ursa_major_client = UrsaMajorClient(settings.URSA_MAJOR["baseurl"])
+    def __init__(self,
+                 package_id,
+                 zodiac_baseurl,
+                 zodiac_api_key,
+                 aurora_baseurl,
+                 aurora_oauth_client_baseurl,
+                 aurora_oauth_client_id,
+                 aurora_oauth_client_secret,
+                 as_baseurl,
+                 as_username,
+                 as_password,
+                 as_repo_id):
+        self.service_name = 'aquarius'
+        self.package_id = package_id
+        self.zodiac_client = ZodiacClient(zodiac_baseurl, zodiac_api_key)
+        self.aspace_client = ArchivesSpaceClient(
+            as_baseurl, as_username, as_password, as_repo_id)
+        self.aurora_client = AuroraClient(
+            aurora_baseurl,
+            aurora_oauth_client_baseurl,
+            aurora_oauth_client_id,
+            aurora_oauth_client_secret)
 
     def run(self):
-        self.create_accession()
-        self.create_archival_obects_group()
-        self.create_archival_object_transfer()
-        self.transform_digital_object()
-        self.update_archival_object()
-        self.update_aurora()
-        self.deliver_start_notification()
-        self.deliver_success_notification()
-        self.deliver_failure_notification()
+        try:
+            package_data = self.zodiac_client.get(f'packages/{self.package_id}')
+            if package_data.get('origin') == 'aurora':
+                aurora_accession_data = self.get_aurora_accession_data(package_data['accession'])  # TODO add method. is this actually an Aurora URL?
+                accession_created = self.create_accession(package_data, aurora_accession_data)
+                group_created = self.create_archival_objects_group(accession_created, aurora_accession_data)
+                transfer_created = self.create_archival_object_transfer(group_created)
+                package_data = transfer_created
+            do_created = self.transform_digital_object(package_data)
+            self.update_archival_object(do_created)
+            self.update_aurora(do_created)
+            self.deliver_success_notification(do_created)
+        except Exception as err:
+            self.deliver_failure_notification(err)
 
-    def get_transformed_object(self):
-        """Transforms data into the target object.
-        get_transformed_object: converts data based on predefined mapping"""
-        # from_obj = json_codec.loads(json.dumps(data), resource=from_resource)
-        # return json.loads(json_codec.dumps(mapping.apply(from_obj)))
-    pass
-
-    def get_linked_agents(self):
+    def get_linked_agents(self, agents):
         """Transforms and creates ArchivesSpace agents.
         get_linked_agents: Creates and links agents in ArchivesSpace based on Aurora creator"""
-        # linked_agents = []
-        # for agent in agents:
-        #     agent_data = map_agents(SourceCreator(type=agent["type"], name=agent["name"]))
-        #     agent_ref = self.aspace_client.get_or_create(
-        #         agent["type"], "title", agent["name"],
-        #         self.start_time, json.loads(json_codec.dumps(agent_data)))
-        #     linked_agents.append({"uri": agent_ref})
-        # return linked_agents
-        pass
+        linked_agents = []
+        for agent in agents:
+            agent_data = map_agents(SourceCreator(type=agent["type"], name=agent["name"]))
+            agent_ref = self.aspace_client.get_or_create(
+                agent["type"], "title", agent["name"],
+                int(time()), json.loads(json_codec.dumps(agent_data)))
+            linked_agents.append({"uri": agent_ref})
+        return linked_agents
 
-    def first_sibling(self):
-        """Returns the first Package object which matches filters passed, if it exists.
-        first_sibling: Finds the first matching package object based on filters passed"""
-        # if Package.objects.filter(**filter_kwargs).exists():
-        #     return Package.objects.filter(**filter_kwargs).first()
-        # return None
-        pass
-
-    def handle_open_dates(self):
-        """Converts `open` dates to null dates
-        handle_open_dates: Converts open-ended dates into a structured (null) format"""
-        # for rights_statement in rights_statements:
-        #     if str(rights_statement.get("end_date")).lower() == "open":
-        #         rights_statement["end_date"] = None
-        #     for granted in rights_statement.get("rights_granted"):
-        #         if granted.get("end_date") == "open":
-        #             granted["end_date"] = None
-        # return rights_statements
-        pass
-
-    def create_accession(self):
+    def create_accession(self, package_data, source_accession_data):
         """Link package information to archival accession data and ensures appropriate relationships are established. Creates Accessions.
             Get bag id from Ursa Major
             Set ursa major accession info to package accession info
@@ -84,31 +95,31 @@ class PackageTransformer():
                 if no: use the ursa major client to retrieve data and set it. Use AS client to get next accession number. Gets and transforms AS data.
             Set aurora data based on retrieved information.
         """
-        # package_data = self.ursa_major_client.find_bag_by_id(package.bag_identifier)
-        # ursa_major_accession = package_data["accession"]
-        # first_sibling = self.first_sibling({"ursa_major_accession": ursa_major_accession})
-        # if first_sibling:
-        #     archivesspace_accession_uri = first_sibling.archivesspace_accession
-        #     archivesspace_resource_uri = first_sibling.archivesspace_resource
-        #     aurora_accession = first_sibling.aurora_accession
-        # else:
-        #     data = self.ursa_major_client.retrieve(ursa_major_accession).get("data")
-        #     aurora_accession = data["url"]
-        #     archivesspace_resource_uri = data["resource"]
-        #     data["accession_number"] = self.aspace_client.next_accession_number()
-        #     data["linked_agents"] = self.get_linked_agents(
-        #         data["creators"] + [{"name": data["organization"], "type": "organization"}])
-        #     data["rights_statements"] = self.handle_open_dates(data.get("rights_statements", []))
-        #     transformed = self.get_transformed_object(data, SourceAccession, SourceAccessionToArchivesSpaceAccession)
-        #     archivesspace_accession_uri = self.aspace_client.create(transformed, "accession").get("uri")
-        # package.aurora_accession = aurora_accession
-        # package.aurora_transfer = package_data["data"]["url"]
-        # package.archivesspace_accession = archivesspace_accession_uri
-        # package.archivesspace_resource = archivesspace_resource_uri
-        # package.ursa_major_accession = ursa_major_accession
-    pass
+        as_resource_uri = source_accession_data['resource']
 
-    def create_archival_obects_group(self):
+        # TODO what is the field name?
+        if "as accession uri in aurora data":
+            as_accession_uri = "as accession uri from aurora data"
+        else:
+            source_accession_data["accession_number"] = self.aspace_client.next_accession_number()
+            source_accession_data["linked_agents"] = self.get_linked_agents(
+                source_accession_data["creators"] + [{"name": source_accession_data["organization"], "type": "organization"}])
+            source_accession_data["rights_statements"] = handle_open_dates(
+                source_accession_data.get("rights_statements", []))
+            transformed = get_transformed_object(source_accession_data, SourceAccession, SourceAccessionToArchivesSpaceAccession)
+            as_accession_uri = self.aspace_client.create(transformed, "accession").get("uri")
+            # TODO push AS accession data back to Aurora accession
+
+        identifiers = [
+            {'aurora_accession': source_accession_data['url']},
+            {'aurora_transfer': package_data['url']},  # TODO should we pop this out of the package data?
+            {'archivesspace_accession': as_accession_uri},
+            {'archivesspace_resource': as_resource_uri}
+        ]
+        package_data.setdefault('identifiers', []).append(identifiers)
+        return package_data
+
+    def create_archival_objects_group(self, package_data, accession_data):
         """Create a grouping component of related archival objects and organizes transfers into groups.
             Creates an archival object for the first package in an acesssion. Links other packages to this archival object.
             Check for a first sibling
@@ -116,46 +127,41 @@ class PackageTransformer():
                 if no: use the ursa major client to get accession information and then use the AS client to make an archival object
             set the archivesspace group to the archivesspace group uri.
         """
-        # first_sibling = self.first_sibling({
-        #     "aurora_accession": package.aurora_accession,
-        #     "archivesspace_group__isnull": False})
-        # if first_sibling:
-        #     archivesspace_group_uri = first_sibling.archivesspace_group
-        # else:
-        #     data = self.ursa_major_client.retrieve(package.ursa_major_accession).get("data")
-        #     data["level"] = "recordgrp"
-        #     data["linked_agents"] = self.get_linked_agents(
-        #         data["creators"] + [{"name": data["organization"], "type": "organization"}])
-        #     data["rights_statements"] = self.handle_open_dates(data.get("rights_statements", []))
-        #     transformed = self.get_transformed_object(data, SourceAccession, SourceAccessionToGroupingComponent)
-        #     archivesspace_group_uri = self.aspace_client.create(transformed, "component").get("uri")
-        # package.archivesspace_group = archivesspace_group_uri
-    pass
+        if "resource group in accession data":  # TODO figure out field
+            as_group_uri = "resource group from accession data"
+        else:
+            accession_data["level"] = "recordgrp"
+            accession_data["linked_agents"] = self.get_linked_agents(
+                accession_data["creators"] + [{"name": accession_data["organization"], "type": "organization"}])
+            accession_data["rights_statements"] = handle_open_dates(package_data.get("rights_statements", []))
+            transformed = get_transformed_object(accession_data, SourceAccession, SourceAccessionToGroupingComponent)
+            as_group_uri = self.aspace_client.create(transformed, "component").get("uri")
 
-    def create_archival_object_transfer(self):
+        package_data.setdefault('identifiers', []).append({'archivesspace_group': as_group_uri})
+        # TODO push group ID back to Aurora, or should this happen at the end?
+        return package_data
+
+    def create_archival_object_transfer(self, package_data):
         """Create a transfer level archival object which represents individual transfers and links them to existing groups.
             Creates an AS archival object for the first package in the transfer. Other packages in the transfer are linked to this AO
             Same as above, except for Transfer instead of Accession. Not exactly sure about the specifics of this.
         """
-        # first_sibling = self.first_sibling({
-        #     "bag_identifier": package.bag_identifier,
-        #     "archivesspace_transfer__isnull": False})
-        # if first_sibling:
-        #     archivesspace_transfer_uri = first_sibling.archivesspace_transfer
-        # else:
-        #     data = self.ursa_major_client.find_bag_by_id(package.bag_identifier).get("data")
-        #     data["parent"] = package.archivesspace_group
-        #     data["resource"] = package.archivesspace_resource
-        #     data["level"] = "file"
-        #     data["linked_agents"] = self.get_linked_agents(
-        #         data["metadata"]["record_creators"] + [{"name": data["metadata"]["source_organization"], "type": "organization"}])
-        #     data["rights_statements"] = self.handle_open_dates(data.get("rights_statements", []))
-        #     transformed = self.get_transformed_object(data, SourceTransfer, SourceTransferToTransferComponent)
-        #     archivesspace_transfer_uri = self.aspace_client.create(transformed, "component").get("uri")
-        # package.archivesspace_transfer = archivesspace_transfer_uri
-    pass
+        if "transfer uri in package data":
+            as_transfer_uri = "transfer uri from package data"
+        else:
+            package_data["parent"] = package_data['identifiers']['archivesspace_group']
+            package_data["resource"] = package_data['identifiers']['archivesspace_resource']
+            package_data["level"] = "file"
+            package_data["linked_agents"] = self.get_linked_agents(
+                package_data["metadata"]["record_creators"] + [{"name": package_data["metadata"]["source_organization"], "type": "organization"}])
+            package_data["rights_statements"] = handle_open_dates(package_data.get("rights_statements", []))
+            transformed = get_transformed_object(package_data, SourceTransfer, SourceTransferToTransferComponent)
+            as_transfer_uri = self.aspace_client.create(transformed, "component").get("uri")
+        package_data.setdefault('identifiers', []).append({'archivesspace_transfer': as_transfer_uri})
+        # TODO update zodiac api
+        return package_data
 
-    def transform_digital_object(self):
+    def transform_digital_object(self, package_data):
         """Make digital objects and updates associated archival objects.
             Creates an archival object and links it to an archival object
             Create a digital object for each package.
@@ -164,111 +170,78 @@ class PackageTransformer():
                 Check if digitized and set to publish if true
                 Set do_uri based on AS digital object uri that is created by as client create using transformed data.
         """
-        # data = {"storage_uri": package.storage_uri, "use_statement": package.use_statement}
-        # transformed = self.get_transformed_object(data, SourcePackage, SourcePackageToDigitalObject)
-        # transfer_component = self.aspace_client.retrieve(package.archivesspace_transfer)
-        # transformed['title'] = transfer_component['display_string']
-        # if package.origin == 'digitization':
-        #     transformed['publish'] = True
-        # do_uri = self.aspace_client.create(transformed, "digital object").get("uri")
-        # self.update_archival_object(package, do_uri)
-    pass
+        data = {"storage_uri": package_data.storage_uri,
+                "use_statement": package_data.use_statement}  # TODO figure out what these attributes need to be. Does the webhook need to update package data?
+        transformed = get_transformed_object(data, SourcePackage, SourcePackageToDigitalObject)
+        transfer_component = self.aspace_client.retrieve(package_data['identifiers']['archivesspace_transfer'])  # TODO how do we get this for digitizd stuff?
+        transformed['title'] = transfer_component['display_string']
+        if package_data['origin'] == 'digitization':
+            transformed['publish'] = True
+        do_uri = self.aspace_client.create(transformed, "digital object").get("uri")
 
-    def update_archival_object(self):
+        self.update_archival_object(transfer_component, do_uri)
+
+        digital_objects = package_data.get('identifiers', []).get('digital_objects', [])
+        package_data.setdefault('identifiers', []).append({'digital_objects': digital_objects.append(do_uri)})
+        return package_data
+
+    def update_archival_object(self, package_data, transfer_component, do_uri):
         """Update the archival object with additional data about the digital object
             Check for rights statements and updates it based on the Aurora rights?
         """
-        # transfer_component = self.aspace_client.retrieve(package.archivesspace_transfer)
-        # if not len(transfer_component.get("rights_statements")) and package.origin in ["digitization", "legacy_digital", "av_digitization"]:
-        #     rights_data = self.ursa_major_client.find_bag_by_id(package.bag_identifier)["data"].get("rights_statements", [])
-        #     transformed_rights = self.get_transformed_object(
-        #         self.handle_open_dates(rights_data), SourceRightsStatement, SourceRightsStatementToArchivesSpaceRightsStatement)
-        #     transfer_component["rights_statements"] = transformed_rights
-        # transfer_component["instances"].append(
-        #     {"instance_type": "digital_object",
-        #      "jsonmodel_type": "instance",
-        #      "digital_object": {"ref": do_uri}})
-        # self.aspace_client.update(package.archivesspace_transfer, transfer_component)
-    pass
+        # TODO add comment about why this rights statement business is here.
+        if not len(transfer_component.get("rights_statements")) and package_data['origi'] in ["digitization", "legacy_digital", "av_digitization"]:
+            rights_data = package_data.get("rights_statements", [])
+            transformed_rights = get_transformed_object(
+                handle_open_dates(rights_data), SourceRightsStatement, SourceRightsStatementToArchivesSpaceRightsStatement)
+            transfer_component["rights_statements"] = transformed_rights
+        transfer_component["instances"].append(
+            {"instance_type": "digital_object",
+             "jsonmodel_type": "instance",
+             "digital_object": {"ref": do_uri}})
+        self.aspace_client.update(package_data['identifiers']['archivesspace_transfer'], transfer_component)
 
-    def update_aurora(self):
+    def update_aurora(self, package_data):
         """Aurora Updates routine
             Send update requests for Aurora for different process statuses.
             Push transfer data updates to Aurora when digital objects are made.
             Send updates about archival accession data to Aurora.
         """
-        # self.client = AuroraClient(**settings.AURORA)
+        data = {"process_status": self.remote_process_status}  # TODO figure out data and fields
+        self.client.update(package_data['url'], data=data)
 
-        # update_ids = []
-        # for package in Package.objects.filter(process_status=self.start_status, origin="aurora"):
-        #     try:
-        #         data = {"process_status": self.remote_process_status}
-        #         self.client.update(getattr(package, self.remote_url), data=data)
-        #         update_ids.append(package.bag_identifier)
-        #     except Exception as e:
-        #         raise Exception(e)
-        # message = "Update requests sent." if len(update_ids) else "No update requests pending"
-        # return (message, update_ids)
-    pass
-
-    def deliver_start_notification(self):
-        """Send notification of service start"""
-    #     client = get_client_with_role('sns', self.role_arn)
-    #     client.publish(
-    #         TopicArn=self.sns_topic,
-    #         Message=f'Discovery for {self.package_id} started.',
-    #         MessageAttributes={
-    #             'package_id': {
-    #                 'DataType': 'String',
-    #                 'StringValue': self.package_id,
-    #             },
-    #             'service': {
-    #                 'DataType': 'String',
-    #                 'StringValue': self.service_name,
-    #             },
-    #             'outcome': {
-    #                 'DataType': 'String',
-    #                 'StringValue': 'STARTED',
-    #             }
-    #         })
-    #     logging.debug('Start notification delivered.')
-        pass
-
-    def deliver_success_notification(self):
+    def deliver_success_notification(self, package_data):
         """Send SNS message about successful job.
 
         Args:
             package_path (pathlib.Path): location of the package binary
             data (dict): data about the package
         """
-        # client = get_client_with_role('sns', self.role_arn)
-        # TODO evaluate what package data is and how stable that model is over time
-        # package_data['package_path'] = package_path
-        # client.publish(
-        #     TopicArn=self.sns_topic,
-        #     Message=f'Package {self.package_id} successfully discovered.',
-        #     MessageAttributes={
-        #         'package_id': {
-        #             'DataType': 'String',
-        #             'StringValue': self.package_id,
-        #         },
-        #         'service': {
-        #             'DataType': 'String',
-        #             'StringValue': self.service_name,
-        #         },
-        #         'outcome': {
-        #             'DataType': 'String',
-        #             'StringValue': 'SUCCESS',
-        #         },
-        #         'package_data': {
-        #             'DataType': 'String',
-        #             'StringValue': json.dumps(package_data),
-        #         },
-        #     })
-        # logging.debug('Success notification delivered.')
-        pass
+        client = get_client_with_role('sns', self.role_arn)  # TODO add this
+        client.publish(
+            TopicArn=self.sns_topic,
+            Message=f'Package {self.package_id} successfully discovered.',
+            MessageAttributes={
+                'package_id': {
+                    'DataType': 'String',
+                    'StringValue': self.package_id,
+                },
+                'service': {
+                    'DataType': 'String',
+                    'StringValue': self.service_name,
+                },
+                'outcome': {
+                    'DataType': 'String',
+                    'StringValue': 'SUCCESS',
+                },
+                'package_data': {
+                    'DataType': 'String',
+                    'StringValue': json.dumps(package_data),
+                },
+            })
+        logging.debug('Success notification delivered.')
 
-    def deliver_failure_notification(self):
+    def deliver_failure_notification(self, exception):
         """Send SNS message about failed job.
 
         Args:
@@ -276,36 +249,36 @@ class PackageTransformer():
             data (dict): data about the package
             exception (Exception): the exception that was thrown.
         """
-        # client = get_client_with_role('sns', self.role_arn)
-        # tb = ''.join(traceback.format_exception(exception)[:-1])
-        # client.publish(
-        #     TopicArn=self.sns_topic,
-        #     Message=f'Package {self.package_id} failed during discovery.',
-        #     MessageAttributes={
-        #         'package_id': {
-        #             'DataType': 'String',
-        #             'StringValue': self.package_id,
-        #         },
-        #         'service': {
-        #             'DataType': 'String',
-        #             'StringValue': self.service_name,
-        #         },
-        #         'outcome': {
-        #             'DataType': 'String',
-        #             'StringValue': 'FAILURE',
-        #         },
-        #         'message': {
-        #             'DataType': 'String',
-        #             'StringValue': str(exception),
-        #         },
-        #         'traceback': {
-        #             'DataType': 'String',
-        #             'StringValue': tb,
-        #         }
-        #     })
-        # logging.debug('Failure notification delivered.')
-        pass
+        client = get_client_with_role('sns', self.role_arn)
+        tb = ''.join(traceback.format_exception(exception)[:-1])
+        client.publish(
+            TopicArn=self.sns_topic,
+            Message=f'Package {self.package_id} failed during discovery.',
+            MessageAttributes={
+                'package_id': {
+                    'DataType': 'String',
+                    'StringValue': self.package_id,
+                },
+                'service': {
+                    'DataType': 'String',
+                    'StringValue': self.service_name,
+                },
+                'outcome': {
+                    'DataType': 'String',
+                    'StringValue': 'FAILURE',
+                },
+                'message': {
+                    'DataType': 'String',
+                    'StringValue': str(exception),
+                },
+                'traceback': {
+                    'DataType': 'String',
+                    'StringValue': tb,
+                }
+            })
+        logging.debug('Failure notification delivered.')
 
 
 if __name__ == "__main__":
+    # TODO pass in variables from env
     PackageTransformer().run()
