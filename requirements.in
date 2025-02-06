@@ -1,8 +1,4 @@
 ArchivesSnake~=0.9
-asterism~=1.0
-ElectronBonder~=2.2
-iso-639~=0.4
-iso8601~=1.0
+electronbonder~=2.2
 odin~=1.8
-PyYAML~=6.0
-uritemplate~=4.1
+requests~=2.32
