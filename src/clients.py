@@ -6,6 +6,8 @@ from electronbonder.client import ElectronBond
 from requests import Session
 from requests.exceptions import HTTPError
 
+# TODO imporove docstrings
+
 
 class ArchivesSpaceClientError(Exception):
     pass
@@ -15,8 +17,14 @@ class AuroraClientError(Exception):
     pass
 
 
+class ZodiacClientError(Exception):
+    pass
+
+
 class ArchivesSpaceClient(object):
     """Client to get and receive data from ArchivesSpace."""
+
+    # TODO is all this URI wrangling necessary?
 
     def __init__(self, baseurl, username, password, repo_id):
         self.client = ASnakeClient(baseurl=baseurl, username=username, password=password)
@@ -27,9 +35,9 @@ class ArchivesSpaceClient(object):
             "family": ["agent_family", "agents/families"],
             "organization": ["agent_corporate_entity", "agents/corporate_entities"],
             "person": ["agent_person", "agents/people"],
-            "component": ["archival_object", "repositories/{repo_id}/archival_objects".format(repo_id=self.repo_id)],
-            "accession": ["accession", "repositories/{repo_id}/accessions".format(repo_id=self.repo_id)],
-            "digital object": ["digital_objects", "repositories/{repo_id}/digital_objects".format(repo_id=self.repo_id)]
+            "component": ["archival_object", f"repositories/{self.repo_id}/archival_objects"],
+            "accession": ["accession", f"repositories/{self.repo_id}/accessions"],
+            "digital object": ["digital_objects", f"repositories/{self.repo_id}/digital_objects"]
         }
 
     def send_request(self, method, url, data=None, **kwargs):
@@ -93,8 +101,9 @@ class ArchivesSpaceClient(object):
                                 "type[]": "accession", "sort": "identifier desc", "aq": query}).json()
             number = "1"
             if r.get("total_hits") >= 1:
-                if r["results"][0]["identifier"].split("-")[0] == current_year:
-                    id_1 = int(r["results"][0]["identifier"].split("-")[1])
+                id_parts = r["results"][0]["identifier"].split("-")
+                if id_parts[0] == current_year:
+                    id_1 = int(id_parts[1])
                     id_1 += 1
                     number = str(id_1).zfill(3)
             return ":".join([current_year, number.zfill(3)])
@@ -121,12 +130,12 @@ class AuroraClient:
         configured for AuroraClient is always used."""
         identifier = raw_url.rstrip("/").split("/")[-1]
         prefix = raw_url.rstrip("/").split("/")[-2]
-        url = "/{}/{}/".format(prefix.lstrip("/"), identifier.lstrip("/"))
+        url = f"/{prefix.lstrip('/')}/{identifier.lstrip('/')}/"
         resp = self.client.patch(url, data=json.dumps(data), headers={"Content-Type": "application/json"}, **kwargs)
         if resp.status_code == 200:
             return resp.json()
         else:
-            raise AuroraClientError("Error sending request {} to Aurora: {}".format(url, resp.text))
+            raise AuroraClientError(f"Error sending request {url} to Aurora: {resp.status_code} {resp.text}")
 
 
 class ZodiacClient(object):
@@ -146,4 +155,4 @@ class ZodiacClient(object):
             resp.raise_for_status()
             return resp.json()
         except HTTPError:
-            raise Exception(f"Error fetching url {url}: {resp.status_code} {resp.text}")
+            raise ZodiacClientError(f"Error fetching url {url}: {resp.status_code} {resp.text}")
