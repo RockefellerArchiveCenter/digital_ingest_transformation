@@ -6,8 +6,6 @@ from unittest.mock import patch
 from src.helpers import handle_open_dates
 from src.transform import PackageTransformer
 
-# TODO docstrings
-
 FIXTURE_PATH = Path('tests', 'fixtures')
 
 
