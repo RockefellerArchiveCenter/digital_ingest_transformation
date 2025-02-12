@@ -72,6 +72,7 @@ class PackageTransformer(object):
                 accession_created = self.create_accession(package_data, aurora_accession_data)
                 group_created = self.create_archival_objects_group(accession_created, aurora_accession_data)
                 # TODO update accession data in Aurora - archivesspace_identifier and archivesspace_group_identifier
+                # Review update mechanism in Aurora - might be better to POST the object back rather than Patching
                 ao_created = self.create_archival_object(group_created)
                 package_data = ao_created
             do_created = self.create_digital_object(package_data)
@@ -118,11 +119,11 @@ class PackageTransformer(object):
                 source_accession_data.get("rights_statements", []))
             transformed = get_transformed_object(source_accession_data, SourceAccession, SourceAccessionToArchivesSpaceAccession)
             as_accession_uri = self.aspace_client.create(transformed, "accession").get("uri")
-            # TODO push AS accession data back to Aurora accession
 
         identifiers = {
             'aurora_accession': source_accession_data['url'],
-            'aurora_package': package_data['url'],  # TODO should we pop this out of the package data?
+            # TODO this should be in the identifiers array already. If it is still in the `url` field it should be popped out of the package data?
+            'aurora_package': package_data['url'],
             'archivesspace_accession': as_accession_uri,
             'archivesspace_resource': as_resource_uri
         }
@@ -137,7 +138,7 @@ class PackageTransformer(object):
                 if no: use the ursa major client to get accession information and then use the AS client to make an archival object
             set the archivesspace group to the archivesspace group uri.
         """
-        if accession_data.get("archivesspace_group_identifier"):  # TODO this field does not actually exist in Aurora right now. Needs to be added.
+        if accession_data.get("archivesspace_group_identifier"):
             as_group_uri = accession_data['archivesspace_group_identifier']
         else:
             accession_data["level"] = "recordgrp"
@@ -148,7 +149,6 @@ class PackageTransformer(object):
             as_group_uri = self.aspace_client.create(transformed, "component").get("uri")
 
         package_data.setdefault('identifiers', {}).update({'archivesspace_group': as_group_uri})
-        # TODO push group ID back to Aurora, or should this happen at the end?
         return package_data
 
     def create_archival_object(self, package_data):
@@ -165,7 +165,6 @@ class PackageTransformer(object):
             transformed = get_transformed_object(package_data, SourcePackage, SourcePackageToComponent)
             as_ao_uri = self.aspace_client.create(transformed, "component").get("uri")
         package_data.setdefault('identifiers', {}).update({'archivesspace_archival_object': as_ao_uri})
-        # TODO update zodiac api
         return package_data
 
     def create_digital_object(self, package_data):
