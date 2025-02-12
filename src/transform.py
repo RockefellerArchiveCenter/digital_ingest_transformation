@@ -39,6 +39,8 @@ class PackageTransformer(object):
 
     def __init__(self,
                  package_id,
+                 sns_topic,
+                 sns_role_arn,
                  zodiac_baseurl,
                  zodiac_api_key,
                  aurora_baseurl,
@@ -51,6 +53,8 @@ class PackageTransformer(object):
                  as_repo_id):
         self.service_name = 'aquarius'
         self.package_id = package_id
+        self.sns_topic = sns_topic
+        self.sns_role_arn = sns_role_arn
         self.zodiac_client = ZodiacClient(zodiac_baseurl, zodiac_api_key)
         self.aspace_client = ArchivesSpaceClient(
             as_baseurl, as_username, as_password, as_repo_id)
@@ -63,8 +67,7 @@ class PackageTransformer(object):
     def run(self):
         try:
             package_data = self.zodiac_client.get(f'packages/{self.package_id}')
-            if package_data.get('origin') == 'aurora':  # TODO should this be a helper method that can also be used below in update_archival_object?
-                # TODO This is not actually a field on this object...yet
+            if self.is_aurora_package(package_data):
                 aurora_accession_data = self.aurora_client.get(package_data['aurora_accession_identifier'])
                 accession_created = self.create_accession(package_data, aurora_accession_data)
                 group_created = self.create_archival_objects_group(accession_created, aurora_accession_data)
@@ -77,6 +80,10 @@ class PackageTransformer(object):
             self.deliver_success_notification(do_created)
         except Exception as err:
             self.deliver_failure_notification(err)
+
+    def is_aurora_package(self, package_data):
+        """Checks if a package originates from Aurora"""
+        return bool(package_data.get('origin') == 'aurora')
 
     def get_linked_agents(self, agents):
         """Transforms and creates ArchivesSpace agents.
@@ -171,10 +178,10 @@ class PackageTransformer(object):
                 Set do_uri based on AS digital object uri that is created by as client create using transformed data.
         """
         data = {"storage_uri": package_data['storage_uri'],
-                "use_statement": package_data['use_statement']}  # TODO figure out what these attributes need to be. Does the webhook need to update package data?
+                "use_statement": package_data['use_statement']}
         transformed = get_transformed_object(data, SourceArchivematicaPackage, SourceArchivematicaPackageToDigitalObject)
         archival_object = self.aspace_client.retrieve(
-            package_data['identifiers']['archivesspace_archival_object'])  # TODO how do we get this for digitizd stuff?
+            package_data['identifiers']['archivesspace_archival_object'])
         transformed['title'] = archival_object['display_string']
         if package_data['origin'] == 'digitization':
             transformed['publish'] = True
@@ -182,7 +189,6 @@ class PackageTransformer(object):
 
         self.update_archival_object(archival_object, do_uri)
 
-        # TODO check this - can we condense this?
         digital_objects = package_data.get('identifiers', {}).get('digital_objects', [])
         digital_objects.append(do_uri)
         package_data.setdefault('identifiers', {}).update({'digital_objects': digital_objects})  # TODO add Storage ID?
@@ -191,9 +197,12 @@ class PackageTransformer(object):
     def update_archival_object(self, package_data, archival_object, do_uri):
         """Update the archival object with additional data about the digital object
             Check for rights statements and updates it based on the Aurora rights?
+
+            Rights statements are added to packages which do not originate in Aurora
+            and do not already have structured rights statements. This is because packages
+            from those other sources have pre-existing archival objects in ArchivesSpace.
         """
-        # TODO add comment about why this rights statement business is here.
-        if not len(archival_object.get("rights_statements")) and package_data['origin'] in ["digitization", "legacy_digital", "av_digitization"]:
+        if not len(archival_object.get("rights_statements")) and not self.is_aurora_package(package_data):
             rights_data = package_data.get("rights_statements", [])
             transformed_rights = get_transformed_object(
                 handle_open_dates(rights_data), SourceRightsStatement, SourceRightsStatementToArchivesSpaceRightsStatement)
@@ -219,7 +228,7 @@ class PackageTransformer(object):
             package_path (pathlib.Path): location of the package binary
             data (dict): data about the package
         """
-        client = get_client_with_role('sns', self.role_arn)  # TODO add this
+        client = get_client_with_role('sns', self.sns_role_arn)
         client.publish(
             TopicArn=self.sns_topic,
             Message=f'Package {self.package_id} successfully discovered.',
@@ -251,7 +260,7 @@ class PackageTransformer(object):
             data (dict): data about the package
             exception (Exception): the exception that was thrown.
         """
-        client = get_client_with_role('sns', self.role_arn)
+        client = get_client_with_role('sns', self.sns_role_arn)
         tb = ''.join(traceback.format_exception(exception)[:-1])
         client.publish(
             TopicArn=self.sns_topic,
