@@ -12,8 +12,6 @@ from requests.exceptions import HTTPError
 from src.clients import (ArchivesSpaceClient, AuroraClient, AuroraClientError,
                          ZodiacClient, ZodiacClientError)
 
-# TODO improve docstrings
-
 
 class MockResponse(object):
     """Class used to mock HTTP responses"""
@@ -35,6 +33,7 @@ class MockResponse(object):
 
 
 class ArchivesSpaceClientTests(TestCase):
+    """Tests the ArchivesSpace client"""
 
     @patch('asnake.client.ASnakeClient.authorize')
     def setUp(self, mock_authorize):
@@ -47,6 +46,7 @@ class ArchivesSpaceClientTests(TestCase):
         self.client = ArchivesSpaceClient(*self.args)
 
     def test_init(self):
+        """Asserts class attributes are set as expected."""
         self.assertEqual(self.client.repo_id, self.repo_id)
         self.assertIsInstance(self.client.client, ASnakeClient)
         self.assertEqual(
@@ -61,6 +61,7 @@ class ArchivesSpaceClientTests(TestCase):
     @patch('asnake.client.ASnakeClient.get')
     @patch('asnake.client.ASnakeClient.post')
     def test_send_request(self, mock_post, mock_get):
+        """Asserts POST and GET requests and exceptions are handled correctly."""
         post_data = {"created": True}
         mock_post.return_value = MockResponse(post_data, 200)
         get_data = {"data": "foo"}
@@ -86,6 +87,7 @@ class ArchivesSpaceClientTests(TestCase):
 
     @patch('src.clients.ArchivesSpaceClient.send_request')
     def test_methods(self, mock_send_request):
+        """Asserts client HTTP method calls use expected arguments."""
         expected = {"foo": "bar"}
         data = {"baz": "buz"}
         url = "/repositories/2/accessions"
@@ -109,8 +111,11 @@ class ArchivesSpaceClientTests(TestCase):
     @patch('asnake.client.ASnakeClient.get')
     @patch('src.clients.ArchivesSpaceClient.create')
     def test_get_or_create(self, mock_post, mock_get):
+        """Asserts get_or_create method correctly handles logic."""
         expected_uri = "repositories/2/agents/people/1"
         data = {"foo": "bar"}
+
+        """Data found in primary search."""
         mock_get.return_value.json.return_value = {"results": [{"uri": expected_uri}]}
         output = self.client.get_or_create('person', 'name', 'Mickey Mouse', time.time(), data)
         self.assertEqual(output, expected_uri)
@@ -122,6 +127,7 @@ class ArchivesSpaceClientTests(TestCase):
                 'aq': '{"query": {"field": "name", "value": "Mickey Mouse", "jsonmodel_type": "field_query"}}'})
         mock_get.reset_mock()
 
+        """Data found in secondary search."""
         mock_get.return_value.json.side_effect = [
             {"results": []},
             [expected_uri],
@@ -131,6 +137,7 @@ class ArchivesSpaceClientTests(TestCase):
         self.assertEqual(mock_get.call_count, 3)
         mock_get.reset_mock()
 
+        """New data created."""
         mock_get.return_value.json.side_effect = [
             {"results": []},
             ["repositories/2/agents/people/2"],
@@ -143,11 +150,15 @@ class ArchivesSpaceClientTests(TestCase):
 
     @patch('asnake.client.ASnakeClient.get')
     def test_next_accession_number(self, mock_get):
+        """Asserts next accession number is returned as expected."""
         current_year = str(date.today().year)
+
+        """Existing accessions in current calendar year."""
         mock_get.return_value = MockResponse({"total_hits": 1, "results": [{"identifier": f"{current_year}-001"}]}, 200)
         output = self.client.next_accession_number()
         self.assertEqual(output, f"{current_year}:002")
 
+        """No accessions in current calendar year."""
         mock_get.return_value = MockResponse({"total_hits": 1, "results": [{"identifier": "2020-010"}]}, 200)
         output = self.client.next_accession_number()
         self.assertEqual(output, f"{current_year}:001")
