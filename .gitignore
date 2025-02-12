@@ -1,6 +1,7 @@
 *.log
 *.pot
 *.pyc
+*.DS_Store
 .idea
 .tox
 __pycache__/
