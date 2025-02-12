@@ -196,7 +196,7 @@ class SourceAccessionToArchivesSpaceAccession(odin.Mapping):
     def dates(self, date_start, date_end):
         return map_dates(date_start, date_end)
 
-    @odin.map_list_field(from_field="rights_statements", to_field="rights_statements", to_list=True)
+    @odin.map_list_field(from_field="rights_statements", to_field="rights_statements")
     def rights_statements(self, value):
         return [SourceRightsStatementToArchivesSpaceRightsStatement.apply(v) for v in value]
 
@@ -235,7 +235,7 @@ class SourceAccessionToGroupingComponent(odin.Mapping):
     def dates(self, date_start, date_end):
         return map_dates(date_start, date_end)
 
-    @odin.map_list_field(from_field="rights_statements", to_field="rights_statements", to_list=True)
+    @odin.map_list_field(from_field="rights_statements", to_field="rights_statements")
     def rights_statements(self, value):
         return [SourceRightsStatementToArchivesSpaceRightsStatement.apply(v) for v in value]
 
@@ -245,7 +245,7 @@ class SourceAccessionToGroupingComponent(odin.Mapping):
 
     @odin.map_list_field(
         from_field=("access_restrictions", "use_restrictions", "description", "appraisal_note", "language"),
-        to_field="notes", to_list=True)
+        to_field="notes")
     def notes(self, access_restrictions, use_restrictions, description, appraisal_note, languages):
         data = []
         for text, type in [
@@ -287,7 +287,7 @@ class SourcePackageToComponent(odin.Mapping):
     def dates(self, value):
         return map_dates(value.date_start, value.date_end)
 
-    @odin.map_list_field(from_field="rights_statements", to_field="rights_statements", to_list=True)
+    @odin.map_list_field(from_field="rights_statements", to_field="rights_statements")
     def rights_statements(self, value):
         return [SourceRightsStatementToArchivesSpaceRightsStatement.apply(v) for v in value]
 
@@ -295,7 +295,7 @@ class SourcePackageToComponent(odin.Mapping):
     def resource(self, value):
         return {"ref": value}
 
-    @odin.map_list_field(from_field="metadata", to_field="notes", to_list=True)
+    @odin.map_list_field(from_field="metadata", to_field="notes")
     def notes(self, value):
         data = []
         if value.internal_sender_description:
