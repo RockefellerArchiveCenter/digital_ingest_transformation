@@ -184,8 +184,8 @@ class PackageTransformer(object):
 
         # TODO check this - can we condense this?
         digital_objects = package_data.get('identifiers', {}).get('digital_objects', [])
-        updated_digital_objects = digital_objects.append(do_uri)
-        package_data.setdefault('identifiers', {}).update({'digital_objects': updated_digital_objects})  # TODO add Storage ID?
+        digital_objects.append(do_uri)
+        package_data.setdefault('identifiers', {}).update({'digital_objects': digital_objects})  # TODO add Storage ID?
         return package_data
 
     def update_archival_object(self, package_data, archival_object, do_uri):

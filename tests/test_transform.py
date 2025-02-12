@@ -198,7 +198,7 @@ class TransformMethodTest(TestCase):
         source_linked_agents = json_from_fixture('source/linked_agents.json')
         transformed_data = json_from_fixture('transformed/archival_object.json')
         returned_data = json_from_fixture('transformed/package--ao_created.json')
-        returned_data_new_ao = json_from_fixture('transformed/package--ao_created--extra.json')  # TODO figure this out, this is BS
+        returned_data_new_ao = json_from_fixture('transformed/package--ao_created--extra.json')
         mock_linked_agents.return_value = linked_agents
         mock_create.return_value = {'uri': '/repositories/2/archival_objects/2153'}
 
@@ -210,7 +210,7 @@ class TransformMethodTest(TestCase):
 
         """New data created."""
         output = self.transformer.create_archival_object(package_data)
-        self.assertEqual(output, returned_data_new_ao)  # TODO we should not need a new fixture here
+        self.assertEqual(output, returned_data_new_ao)
         mock_linked_agents.assert_called_once_with(source_linked_agents)
         mock_create.assert_called_once_with(transformed_data, "component")
 
@@ -219,10 +219,12 @@ class TransformMethodTest(TestCase):
     @patch('src.transform.PackageTransformer.update_archival_object')
     def test_create_digital_object(self, mock_update_ao, mock_retrieve, mock_create):
         package_data = json_from_fixture('source/package--ao_created.json')
-        # transformed_data = json_from_fixture('transformed/digital_object.json')
+        package_data_digitization = json_from_fixture('source/package--ao_created--digitization.json')  # TODO continues to be dumb
+        transformed_data = json_from_fixture('transformed/digital_object.json')
+        transformed_data_digitization = json_from_fixture('transformed/digital_object--digitization.json')
         returned_data = json_from_fixture('transformed/package--do_created.json')
+        returned_data_digitization = json_from_fixture('transformed/package--do_created--digitization.json')
         as_archival_object = json_from_fixture('source/as_archival_object.json')
-        # updated_as_archival_object = json_from_fixture('source/as_archival_object--updated.json')
         do_uri = "/repositories/2/digital_objects/3"
         mock_create.return_value = {"uri": do_uri}
         mock_retrieve.return_value = as_archival_object
@@ -231,11 +233,17 @@ class TransformMethodTest(TestCase):
         output = self.transformer.create_digital_object(package_data)
         self.assertEqual(output, returned_data)
         mock_retrieve.assert_called_once_with(package_data['identifiers']['archivesspace_archival_object'])
-        mock_create.assert_called_once_with(  # TODO why does this not work with a fixture?
-            {'jsonmodel_type': 'digital_object', 'publish': False, 'title': 'American Foundation for the Blind - Drama', 'digital_object_id': '0a9c6171-a18d-4ff6-b9e7-bef01aaded10', 'file_versions': [{'file_uri': '/aips/0a9c6171-a18d-4ff6-b9e7-bef01aaded10', 'use_statement': 'master', '$': 'src.resources.archivesspace.ArchivesSpaceFileVersion'}], 'repository': {'ref': '/repositories/2'}, '$': 'src.resources.archivesspace.ArchivesSpaceDigitalObject'}, 'digital object')
+        mock_create.assert_called_once_with(transformed_data, 'digital object')
         mock_update_ao.assert_called_once_with(as_archival_object, do_uri)
+        for m in [mock_retrieve, mock_create, mock_update_ao]:
+            m.reset_mock()
 
-        # TODO digitization package
+        """Package originating in digitization"""
+        output = self.transformer.create_digital_object(package_data_digitization)
+        self.assertEqual(output, returned_data_digitization)
+        mock_retrieve.assert_called_once_with(package_data['identifiers']['archivesspace_archival_object'])
+        mock_create.assert_called_once_with(transformed_data_digitization, 'digital object')
+        mock_update_ao.assert_called_once_with(as_archival_object, do_uri)
 
     @patch('src.clients.ArchivesSpaceClient.update')
     def test_update_archival_object(self, mock_update):

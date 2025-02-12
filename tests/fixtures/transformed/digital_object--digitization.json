@@ -1,0 +1,17 @@
+{
+    "jsonmodel_type": "digital_object",
+    "publish": true,
+    "title": "American Foundation for the Blind - Drama",
+    "digital_object_id": "0a9c6171-a18d-4ff6-b9e7-bef01aaded10",
+    "file_versions": [
+        {
+            "file_uri": "/aips/0a9c6171-a18d-4ff6-b9e7-bef01aaded10",
+            "use_statement": "master",
+            "$": "src.resources.archivesspace.ArchivesSpaceFileVersion"
+        }
+    ],
+    "repository": {
+        "ref": "/repositories/2"
+    },
+    "$": "src.resources.archivesspace.ArchivesSpaceDigitalObject"
+}

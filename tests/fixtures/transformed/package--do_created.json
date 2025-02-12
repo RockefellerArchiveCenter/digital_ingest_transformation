@@ -152,7 +152,7 @@
         "archivesspace_resource": "/repositories/2/resources/123",
         "archivesspace_group": "/repositories/2/archival_objects/4753",
         "archivesspace_archival_object": "/repositories/2/archival_objects/2153",
-        "digital_objects": null
+        "digital_objects": ["/repositories/2/digital_objects/3"]
     },
     "storage_uri": "/aips/0a9c6171-a18d-4ff6-b9e7-bef01aaded10",
     "use_statement": "master"
