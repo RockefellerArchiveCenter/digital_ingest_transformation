@@ -28,14 +28,7 @@ logging.basicConfig(
 
 
 class PackageTransformer(object):
-    """Handles clients for interacting with external systems and defines the general structure of how routines process objects.
-    Processes a single package object based on its structure and updates the package status.
-    Transform object
-        Overriden by each other class based on their routines
-        Accession: Handles creation and linking of accesssions in AS
-        Grouping: Manages grouping archival objects
-        Packge: Handles package objects and relationships to metadata
-        Digital Object: Creates digital objects in AS and updates archival objects"""
+    """Transforms data associated with packages and saves it in external systems."""
 
     def __init__(self,
                  package_id,
@@ -65,6 +58,7 @@ class PackageTransformer(object):
             aurora_oauth_client_secret)
 
     def run(self):
+        """Main class method which calls all other methods."""
         try:
             package_data = self.zodiac_client.get(f'packages/{self.package_id}')
             if self.is_aurora_package(package_data):
@@ -83,12 +77,25 @@ class PackageTransformer(object):
             self.deliver_failure_notification(err)
 
     def is_aurora_package(self, package_data):
-        """Checks if a package originates from Aurora"""
+        """Checks if a package originates from Aurora.
+
+        Args:
+            package_data (dict): initial source package data from Zodiac.
+
+        Returns:
+            bool: indicates if package originated in Aurora.
+        """
         return bool(package_data.get('origin') == 'aurora')
 
     def get_linked_agents(self, agents):
         """Transforms and creates ArchivesSpace agents.
-        get_linked_agents: Creates and links agents in ArchivesSpace based on Aurora creator"""
+
+        Args:
+            agents (list of dicts): source data about agents.
+
+        Returns:
+            linked_agents (list of strs): ArchivesSpace URIs for agents.
+        """
         linked_agents = []
         for agent in agents:
             agent_data = map_agents(SourceCreator(type=agent["type"], name=agent["name"]))
@@ -99,13 +106,14 @@ class PackageTransformer(object):
         return linked_agents
 
     def create_accession(self, package_data, source_accession_data):
-        """Link package information to archival accession data and ensures appropriate relationships are established. Creates Accessions.
-            Get bag id from Ursa Major
-            Set ursa major accession info to package accession info
-            Check for first sibling
-                if yes: set accession and resource and update ursa major accession info
-                if no: use the ursa major client to retrieve data and set it. Use AS client to get next accession number. Gets and transforms AS data.
-            Set aurora data based on retrieved information.
+        """Creates accession in ArchivesSpace, if necessary.
+
+        Args:
+            package_data (dict): Source package data.
+            source_accession_data (dict): Source accession data.
+
+        Returns:
+            package_data (dict): Updated package data
         """
         as_resource_uri = source_accession_data['resource']
 
@@ -131,12 +139,14 @@ class PackageTransformer(object):
         return package_data
 
     def create_archival_objects_group(self, package_data, accession_data):
-        """Create a grouping component of related archival objects and organizes packages into groups.
-            Creates an archival object for the first package in an acesssion. Links other packages to this archival object.
-            Check for a first sibling
-                if yes: set the AS group URI to the first sibling's archivesspace group
-                if no: use the ursa major client to get accession information and then use the AS client to make an archival object
-            set the archivesspace group to the archivesspace group uri.
+        """Create an ArchivesSpace grouping component (series) for archival objects, if necessary.
+
+        Args:
+            package_data (dict): Source package data.
+            accession_data (dict): Source accession data.
+
+        Returns:
+            package_data (dict): Updated package data
         """
         if accession_data.get("archivesspace_group_identifier"):
             as_group_uri = accession_data['archivesspace_group_identifier']
@@ -152,7 +162,14 @@ class PackageTransformer(object):
         return package_data
 
     def create_archival_object(self, package_data):
-        """Create a package level archival object."""
+        """Create an ArchivesSpace archival object for the package, if necessary.
+
+        Args:
+            package_data (dict): Source package data.
+
+        Returns:
+            package_data (dict): Updated package data
+        """
         if package_data.get('archivesspace_identifier'):
             as_ao_uri = package_data['archivesspace_identifier']
         else:
@@ -168,13 +185,13 @@ class PackageTransformer(object):
         return package_data
 
     def create_digital_object(self, package_data):
-        """Make digital objects and updates associated archival objects.
-            Creates an archival object and links it to an archival object
-            Create a digital object for each package.
-                Transform data based on mappings
-                Get AS data and set title in the transformed data based on display string
-                Check if digitized and set to publish if true
-                Set do_uri based on AS digital object uri that is created by as client create using transformed data.
+        """Create an ArchivesSpace digital object for the package.
+
+        Args:
+            package_data (dict): Source package data.
+
+        Returns:
+            package_data (dict): Updated package data
         """
         data = {"storage_uri": package_data['storage_uri'],
                 "use_statement": package_data['use_statement']}
@@ -194,12 +211,19 @@ class PackageTransformer(object):
         return package_data
 
     def update_archival_object(self, package_data, archival_object, do_uri):
-        """Update the archival object with additional data about the digital object
-            Check for rights statements and updates it based on the Aurora rights?
+        """Update the archival object with additional data about the digital object.
 
-            Rights statements are added to packages which do not originate in Aurora
-            and do not already have structured rights statements. This is because packages
-            from those other sources have pre-existing archival objects in ArchivesSpace.
+        Rights statements are added to packages which do not originate in Aurora
+        and do not already have structured rights statements. This is because packages
+        from those other sources have pre-existing archival objects in ArchivesSpace.
+
+        Args:
+            package_data (dict): Source package data.
+            archival_object (dict): Archival object to be updated.
+            do_uri (str): ArchivesSpace URI for digital object to add to instances.
+
+        Returns:
+            package_data (dict): Updated package data
         """
         if not len(archival_object.get("rights_statements")) and not self.is_aurora_package(package_data):
             rights_data = package_data.get("rights_statements", [])
@@ -213,10 +237,10 @@ class PackageTransformer(object):
         self.aspace_client.update(package_data['identifiers']['archivesspace_archival_object'], archival_object)
 
     def update_aurora(self, package_data):
-        """Aurora Updates routine
-            Send update requests for Aurora for different process statuses.
-            Push package data updates to Aurora when digital objects are made.
-            Send updates about archival accession data to Aurora.
+        """Sends an update request to Aurora.
+
+        Args:
+            package_data (dict): Source package data.
         """
         self.aurora_client.update(package_data['url'], data=package_data)
 
@@ -224,8 +248,7 @@ class PackageTransformer(object):
         """Send SNS message about successful job.
 
         Args:
-            package_path (pathlib.Path): location of the package binary
-            data (dict): data about the package
+            packaage_data (dict): data about the package
         """
         client = get_client_with_role('sns', self.sns_role_arn)
         client.publish(
@@ -255,8 +278,6 @@ class PackageTransformer(object):
         """Send SNS message about failed job.
 
         Args:
-            package_path (pathlib.Path): location of the package binary
-            data (dict): data about the package
             exception (Exception): the exception that was thrown.
         """
         client = get_client_with_role('sns', self.sns_role_arn)
