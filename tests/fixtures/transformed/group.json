@@ -1,0 +1,235 @@
+{
+    "language": "eng",
+    "level": "recordgrp",
+    "resource": {
+        "ref": "/repositories/2/resources/123",
+        "$": "src.resources.archivesspace.ArchivesSpaceRef"
+    },
+    "parent": {},
+    "dates": [
+        {
+            "expression": "2000 May 13 - 2002 June 21",
+            "begin": "2000-05-13T00:00:00-04:00",
+            "end": "2002-06-21T00:00:00-04:00",
+            "date_type": "inclusive",
+            "label": "creation",
+            "$": "src.resources.archivesspace.ArchivesSpaceDate"
+        }
+    ],
+    "extents": [
+        {
+            "number": "1716428",
+            "container_summary": null,
+            "portion": "whole",
+            "extent_type": "bytes",
+            "$": "src.resources.archivesspace.ArchivesSpaceExtent"
+        },
+        {
+            "number": "28",
+            "container_summary": null,
+            "portion": "whole",
+            "extent_type": "files",
+            "$": "src.resources.archivesspace.ArchivesSpaceExtent"
+        }
+    ],
+    "external_ids": [
+        {
+            "external_id": "https://aurora.dev.rockarch.org/api/accessions/237/",
+            "source": "aurora",
+            "$": "src.resources.archivesspace.ArchivesSpaceExternalId"
+        }
+    ],
+    "instances": [],
+    "jsonmodel_type": null,
+    "lang_materials": [
+        {
+            "language_and_script": {
+                "language": "eng",
+                "$": "src.resources.archivesspace.ArchivesSpaceLanguageAndScript"
+            },
+            "$": "src.resources.archivesspace.ArchivesSpaceLangMaterial"
+        }
+    ],
+    "linked_agents": [
+        {
+            "role": "creator",
+            "relator": null,
+            "ref": "/repositories/2/organizations/3",
+            "$": "src.resources.archivesspace.ArchivesSpaceLinkedAgent"
+        },
+        {
+            "role": "creator",
+            "relator": null,
+            "ref": "/repositories/2/organizations/4",
+            "$": "src.resources.archivesspace.ArchivesSpaceLinkedAgent"
+        },
+        {
+            "role": "creator",
+            "relator": null,
+            "ref": "/repositories/2/organizations/5",
+            "$": "src.resources.archivesspace.ArchivesSpaceLinkedAgent"
+        }
+    ],
+    "notes": [
+        {
+            "publish": false,
+            "jsonmodel_type": "note_multipart",
+            "type": "accessrestrict",
+            "label": null,
+            "subnotes": [
+                {
+                    "jsonmodel_type": "note_text",
+                    "publish": false,
+                    "content": "Records are available for onsite research after a 10 year embargo. 10 year embargo in effect These can't go online",
+                    "items": null,
+                    "$": "src.resources.archivesspace.ArchivesSpaceSubnote"
+                }
+            ],
+            "content": null,
+            "items": null,
+            "$": "src.resources.archivesspace.ArchivesSpaceNote"
+        },
+        {
+            "publish": false,
+            "jsonmodel_type": "note_multipart",
+            "type": "userestrict",
+            "label": null,
+            "subnotes": [
+                {
+                    "jsonmodel_type": "note_text",
+                    "publish": false,
+                    "content": "Donor organization retains copyright",
+                    "items": null,
+                    "$": "src.resources.archivesspace.ArchivesSpaceSubnote"
+                }
+            ],
+            "content": null,
+            "items": null,
+            "$": "src.resources.archivesspace.ArchivesSpaceNote"
+        },
+        {
+            "publish": false,
+            "jsonmodel_type": "note_multipart",
+            "type": "scopecontent",
+            "label": null,
+            "subnotes": [
+                {
+                    "jsonmodel_type": "note_text",
+                    "publish": false,
+                    "content": "Grant awarded to the Village Green Preservation Society for the purpose of \"preserving the old ways from being abused, protecting the new ways for me and for you\"",
+                    "items": null,
+                    "$": "src.resources.archivesspace.ArchivesSpaceSubnote"
+                }
+            ],
+            "content": null,
+            "items": null,
+            "$": "src.resources.archivesspace.ArchivesSpaceNote"
+        }
+    ],
+    "publish": false,
+    "repository": {
+        "ref": "/repositories/2"
+    },
+    "rights_statements": [
+        {
+            "determination_date": "2021-08-11",
+            "rights_type": "copyright",
+            "start_date": "2000-05-13",
+            "end_date": "2122-06-21",
+            "status": "unknown",
+            "other_rights_basis": null,
+            "jurisdiction": "US",
+            "license_terms": null,
+            "statute_citation": null,
+            "notes": [
+                {
+                    "publish": false,
+                    "jsonmodel_type": "note_rights_statement",
+                    "type": "type_note",
+                    "label": null,
+                    "subnotes": [],
+                    "content": [
+                        "Donor organization retains copyright"
+                    ],
+                    "items": null,
+                    "$": "src.resources.archivesspace.ArchivesSpaceNote"
+                }
+            ],
+            "acts": [],
+            "$": "src.resources.archivesspace.ArchivesSpaceRightsStatement"
+        },
+        {
+            "determination_date": null,
+            "rights_type": "other",
+            "start_date": "2000-05-13",
+            "end_date": "2012-06-21",
+            "status": null,
+            "other_rights_basis": "donor",
+            "jurisdiction": null,
+            "license_terms": null,
+            "statute_citation": null,
+            "notes": [
+                {
+                    "publish": false,
+                    "jsonmodel_type": "note_rights_statement",
+                    "type": "type_note",
+                    "label": null,
+                    "subnotes": [],
+                    "content": [
+                        "Records are available for onsite research after a 10 year embargo."
+                    ],
+                    "items": null,
+                    "$": "src.resources.archivesspace.ArchivesSpaceNote"
+                }
+            ],
+            "acts": [
+                {
+                    "act_type": "publish",
+                    "start_date": "2000-05-13",
+                    "end_date": "2002-06-21",
+                    "restriction": "disallow",
+                    "notes": [
+                        {
+                            "publish": false,
+                            "jsonmodel_type": "note_rights_statement_act",
+                            "type": "additional_information",
+                            "label": null,
+                            "subnotes": [],
+                            "content": [
+                                "These can't go online"
+                            ],
+                            "items": null,
+                            "$": "src.resources.archivesspace.ArchivesSpaceNote"
+                        }
+                    ],
+                    "$": "src.resources.archivesspace.ArchivesSpaceRightsStatementAct"
+                },
+                {
+                    "act_type": "disseminate",
+                    "start_date": "2000-05-13",
+                    "end_date": "2012-06-21",
+                    "restriction": "disallow",
+                    "notes": [
+                        {
+                            "publish": false,
+                            "jsonmodel_type": "note_rights_statement_act",
+                            "type": "additional_information",
+                            "label": null,
+                            "subnotes": [],
+                            "content": [
+                                "10 year embargo in effect"
+                            ],
+                            "items": null,
+                            "$": "src.resources.archivesspace.ArchivesSpaceNote"
+                        }
+                    ],
+                    "$": "src.resources.archivesspace.ArchivesSpaceRightsStatementAct"
+                }
+            ],
+            "$": "src.resources.archivesspace.ArchivesSpaceRightsStatement"
+        }
+    ],
+    "title": "Donor Organization, Custard Pie Appreciation Consortium, Desperate Dan Appreciation Society grant records",
+    "uri": null,
+    "$": "src.resources.archivesspace.ArchivesSpaceArchivalObject"
+}

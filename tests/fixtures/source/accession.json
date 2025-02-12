@@ -1,0 +1,101 @@
+{
+    "url": "https://aurora.dev.rockarch.org/api/accessions/237/",
+    "creators": [
+        {
+            "name": "Custard Pie Appreciation Consortium",
+            "type": "organization"
+        },
+        {
+            "name": "Desperate Dan Appreciation Society",
+            "type": "organization"
+        }
+    ],
+    "transfers": [
+        {
+            "url": "https://aurora.dev.rockarch.org/api/transfers/1607/",
+            "identifier": "139e6be1-70a1-454a-9ba5-ed3551187abc",
+            "created_time": "2021-08-13T16:09:04.352063-04:00",
+            "modified_time": "2022-11-10T15:15:58.307431-05:00"
+        },
+        {
+            "url": "https://aurora.dev.rockarch.org/api/transfers/1609/",
+            "identifier": "581f2d3a-b1de-4df7-8d38-de9625beedf9",
+            "created_time": "2021-08-13T16:09:09.399419-04:00",
+            "modified_time": "2022-11-10T15:04:04.827420-05:00"
+        },
+        {
+            "url": "https://aurora.dev.rockarch.org/api/transfers/1611/",
+            "identifier": "bc3b0d7c-b493-4cbc-a3a8-35d275318dc7",
+            "created_time": "2021-08-13T16:09:12.598548-04:00",
+            "modified_time": "2022-11-10T15:19:29.957543-05:00"
+        },
+        {
+            "url": "https://aurora.dev.rockarch.org/api/transfers/1613/",
+            "identifier": "264f7df4-6480-4471-879f-046074c7b347",
+            "created_time": "2021-08-13T16:09:15.730861-04:00",
+            "modified_time": "2022-11-10T15:08:37.898319-05:00"
+        }
+    ],
+    "organization": "Donor Organization",
+    "rights_statements": [
+        {
+            "rights_basis": "copyright",
+            "determination_date": "2021-08-11",
+            "jurisdiction": "us",
+            "start_date": "2000-05-13",
+            "end_date": "2122-06-21",
+            "basis_note": "Donor organization retains copyright",
+            "copyright_status": "unknown",
+            "terms": null,
+            "statute_citation": null,
+            "other_basis": null,
+            "rights_granted": []
+        },
+        {
+            "rights_basis": "other",
+            "determination_date": null,
+            "jurisdiction": null,
+            "start_date": "2000-05-13",
+            "end_date": "2012-06-21",
+            "basis_note": "Records are available for onsite research after a 10 year embargo.",
+            "copyright_status": null,
+            "terms": null,
+            "statute_citation": null,
+            "other_basis": "donor",
+            "rights_granted": [
+                {
+                    "act": "publish",
+                    "start_date": "2000-05-13",
+                    "end_date": "2002-06-21",
+                    "granted_note": "These can't go online",
+                    "grant_restriction": "disallow"
+                },
+                {
+                    "act": "disseminate",
+                    "start_date": "2000-05-13",
+                    "end_date": "2012-06-21",
+                    "granted_note": "10 year embargo in effect",
+                    "grant_restriction": "disallow"
+                }
+            ]
+        }
+    ],
+    "language": "eng",
+    "title": "Donor Organization, Custard Pie Appreciation Consortium, Desperate Dan Appreciation Society grant records",
+    "accession_number": "2021:068",
+    "accession_date": "2021-08-13T16:11:38.293332-04:00",
+    "start_date": "2000-05-13T00:00:00-04:00",
+    "end_date": "2002-06-21T00:00:00-04:00",
+    "extent_files": 28,
+    "extent_size": 1716428,
+    "description": "Grant awarded to the Village Green Preservation Society for the purpose of \"preserving the old ways from being abused, protecting the new ways for me and for you\"",
+    "access_restrictions": "Records are available for onsite research after a 10 year embargo. 10 year embargo in effect These can't go online",
+    "use_restrictions": "Donor organization retains copyright",
+    "resource": "/repositories/2/resources/123",
+    "acquisition_type": "deposit",
+    "appraisal_note": "",
+    "created": "2021-08-13T16:11:38.293447-04:00",
+    "last_modified": "2022-11-10T15:19:32.910853-05:00",
+    "process_status": 40,
+    "archivesspace_identifier": null
+}

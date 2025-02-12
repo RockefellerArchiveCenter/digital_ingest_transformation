@@ -1,0 +1,155 @@
+{
+    "url": "https://aurora.dev.rockarch.org/api/transfers/1631/?format=json",
+    "identifier": "0a9c6171-a18d-4ff6-b9e7-bef01aaded10",
+    "organization": "https://aurora.dev.rockarch.org/api/orgs/3/?format=json",
+    "origin": "aurora",
+    "bag_it_name": "valid_bag",
+    "process_status": 90,
+    "file_size": "432905",
+    "file_type": "TAR",
+    "appraisal_note": null,
+    "additional_error_info": null,
+    "metadata": {
+        "source_organization": "Donor Organization",
+        "title": "Grant to the Village Green Preservation Society",
+        "record_creators": [
+            {
+                "name": "Custard Pie Appreciation Consortium",
+                "type": "organization"
+            },
+            {
+                "name": "Desperate Dan Appreciation Society",
+                "type": "organization"
+            }
+        ],
+        "internal_sender_description": "Grant awarded to the Village Green Preservation Society for the purpose of \"preserving the old ways from being abused, protecting the new ways for me and for you\"",
+        "date_start": "2000-05-14",
+        "date_end": "2002-06-22",
+        "record_type": "grant records",
+        "language": [
+            "eng"
+        ],
+        "bag_count": "",
+        "bag_group_identifier": "",
+        "payload_oxum": "429107.7",
+        "bagit_profile_identifier": "https://raw.githubusercontent.com/RockefellerArchiveCenter/aurora/base/test_bags/test_profile.json",
+        "bagging_date": "2017-11-04T10:40:17.118401-04:00",
+        "origin": "aurora"
+    },
+    "rights_statements": [
+        {
+            "rights_basis": "copyright",
+            "determination_date": "2021-08-11",
+            "jurisdiction": "us",
+            "start_date": "2000-05-13",
+            "end_date": "2122-06-21",
+            "basis_note": "Donor organization retains copyright",
+            "copyright_status": "unknown",
+            "terms": null,
+            "statute_citation": null,
+            "other_basis": null,
+            "rights_granted": []
+        },
+        {
+            "rights_basis": "other",
+            "determination_date": null,
+            "jurisdiction": null,
+            "start_date": "2000-05-13",
+            "end_date": "2012-06-21",
+            "basis_note": "Records are available for onsite research after a 10 year embargo.",
+            "copyright_status": null,
+            "terms": null,
+            "statute_citation": null,
+            "other_basis": "donor",
+            "rights_granted": [
+                {
+                    "act": "publish",
+                    "start_date": "2000-05-13",
+                    "end_date": "2002-06-21",
+                    "granted_note": "These can't go online",
+                    "grant_restriction": "disallow"
+                },
+                {
+                    "act": "disseminate",
+                    "start_date": "2000-05-13",
+                    "end_date": "2012-06-21",
+                    "granted_note": "10 year embargo in effect",
+                    "grant_restriction": "disallow"
+                }
+            ]
+        }
+    ],
+    "events": [
+        {
+            "url": "https://aurora.dev.rockarch.org/api/events/504037/?format=json",
+            "type": "Accept",
+            "summary": "Transfer accessioned",
+            "object": "https://aurora.dev.rockarch.org/api/transfers/1631/?format=json",
+            "result": {
+                "name": "Transfer sent to archival storage"
+            },
+            "endTime": "2021-09-01 15:25:50.045627+00:00"
+        },
+        {
+            "url": "https://aurora.dev.rockarch.org/api/events/504031/?format=json",
+            "type": "Accept",
+            "summary": "Transfer accepted by appraisal archivist",
+            "object": "https://aurora.dev.rockarch.org/api/transfers/1631/?format=json",
+            "result": {
+                "name": "Transfer staged for accessioning"
+            },
+            "endTime": "2021-09-01 15:23:07.973537+00:00"
+        },
+        {
+            "url": "https://aurora.dev.rockarch.org/api/events/495897/?format=json",
+            "type": "Accept",
+            "summary": "Transfer passed all validation",
+            "object": "https://aurora.dev.rockarch.org/api/transfers/1631/?format=json",
+            "result": {
+                "name": "Transfer staged for appraisal"
+            },
+            "endTime": "2021-08-18 18:29:04.310072+00:00"
+        },
+        {
+            "url": "https://aurora.dev.rockarch.org/api/events/495895/?format=json",
+            "type": "Accept",
+            "summary": "Transfer passed BagIt Profile and datatype validation",
+            "object": "https://aurora.dev.rockarch.org/api/transfers/1631/?format=json",
+            "result": {
+                "name": "Transfer staged for appraisal"
+            },
+            "endTime": "2021-08-18 18:29:04.305554+00:00"
+        },
+        {
+            "url": "https://aurora.dev.rockarch.org/api/events/495893/?format=json",
+            "type": "Accept",
+            "summary": "Transfer passed BagIt validation",
+            "object": "https://aurora.dev.rockarch.org/api/transfers/1631/?format=json",
+            "result": {
+                "name": "Transfer staged for BagIt Profile validation"
+            },
+            "endTime": "2021-08-18 18:29:03.943595+00:00"
+        },
+        {
+            "url": "https://aurora.dev.rockarch.org/api/events/495891/?format=json",
+            "type": "Accept",
+            "summary": "Transfer saved",
+            "object": "https://aurora.dev.rockarch.org/api/transfers/1631/?format=json",
+            "result": {
+                "name": "Transfer staged for BagIt validation"
+            },
+            "endTime": "2021-08-18 18:29:03.912493+00:00"
+        }
+    ],
+    "archivesspace_identifier": "/repositories/2/archival_objects/2153",
+    "archivesspace_parent_identifier": null,
+    "created_time": "2021-08-18T14:29:03.159961-04:00",
+    "modified_time": "2022-11-10T15:16:18.243515-05:00",
+    "identifiers": {
+        "aurora_accession": "https://aurora.dev.rockarch.org/api/accessions/237/",
+        "aurora_transfer": "https://aurora.dev.rockarch.org/api/transfers/1631/?format=json",
+        "archivesspace_accession": "/repositories/2/accessions/4172",
+        "archivesspace_resource": "/repositories/2/resources/123",
+        "archivesspace_group": "/repositories/2/archival_objects/4753"
+    }
+}

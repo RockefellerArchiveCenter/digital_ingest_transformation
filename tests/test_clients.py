@@ -155,6 +155,8 @@ class ArchivesSpaceClientTests(TestCase):
 
 class AuroraClientTests(TestCase):
 
+    # TODO add tests for strip_url and get
+
     @patch('electronbonder.client.ElectronBond.authorize_oauth')
     def setUp(self, mock_authorize):
         mock_authorize.return_value = True

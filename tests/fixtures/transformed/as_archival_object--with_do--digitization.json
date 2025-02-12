@@ -1,0 +1,211 @@
+{
+    "lock_version": 19,
+    "position": 14,
+    "publish": true,
+    "ref_id": "f87164e3d5c24a0b86f823528c0a42b5",
+    "title": "American Foundation for the Blind - Drama",
+    "display_string": "American Foundation for the Blind - Drama",
+    "restrictions_apply": false,
+    "created_by": "admin",
+    "last_modified_by": "admin",
+    "create_time": "2014-12-06T03:44:11Z",
+    "system_mtime": "2021-08-18T15:59:07Z",
+    "user_mtime": "2021-08-18T15:59:07Z",
+    "suppressed": false,
+    "is_slug_auto": false,
+    "level": "file",
+    "jsonmodel_type": "archival_object",
+    "external_ids": [
+        {
+            "external_id": "728884",
+            "source": "Archivists Toolkit Database::RESOURCE_COMPONENT",
+            "created_by": "admin",
+            "last_modified_by": "admin",
+            "create_time": "2021-08-18T15:59:27Z",
+            "system_mtime": "2021-08-18T15:59:27Z",
+            "user_mtime": "2021-08-18T15:59:27Z",
+            "jsonmodel_type": "external_id"
+        }
+    ],
+    "subjects": [],
+    "linked_events": [],
+    "extents": [],
+    "lang_materials": [],
+    "dates": [],
+    "external_documents": [],
+    "rights_statements": [
+        {
+            "determination_date": "2021-08-11",
+            "rights_type": "copyright",
+            "start_date": "2000-05-13",
+            "end_date": "2122-06-21",
+            "status": "unknown",
+            "other_rights_basis": null,
+            "jurisdiction": "US",
+            "license_terms": null,
+            "statute_citation": null,
+            "notes": [
+                {
+                    "publish": false,
+                    "jsonmodel_type": "note_rights_statement",
+                    "type": "type_note",
+                    "label": null,
+                    "subnotes": [],
+                    "content": [
+                        "Donor organization retains copyright"
+                    ],
+                    "items": null,
+                    "$": "src.resources.archivesspace.ArchivesSpaceNote"
+                }
+            ],
+            "acts": [],
+            "$": "src.resources.archivesspace.ArchivesSpaceRightsStatement"
+        },
+        {
+            "determination_date": null,
+            "rights_type": "other",
+            "start_date": "2000-05-13",
+            "end_date": "2012-06-21",
+            "status": null,
+            "other_rights_basis": "donor",
+            "jurisdiction": null,
+            "license_terms": null,
+            "statute_citation": null,
+            "notes": [
+                {
+                    "publish": false,
+                    "jsonmodel_type": "note_rights_statement",
+                    "type": "type_note",
+                    "label": null,
+                    "subnotes": [],
+                    "content": [
+                        "Records are available for onsite research after a 10 year embargo."
+                    ],
+                    "items": null,
+                    "$": "src.resources.archivesspace.ArchivesSpaceNote"
+                }
+            ],
+            "acts": [
+                {
+                    "act_type": "publish",
+                    "start_date": "2000-05-13",
+                    "end_date": "2002-06-21",
+                    "restriction": "disallow",
+                    "notes": [
+                        {
+                            "publish": false,
+                            "jsonmodel_type": "note_rights_statement_act",
+                            "type": "additional_information",
+                            "label": null,
+                            "subnotes": [],
+                            "content": [
+                                "These can't go online"
+                            ],
+                            "items": null,
+                            "$": "src.resources.archivesspace.ArchivesSpaceNote"
+                        }
+                    ],
+                    "$": "src.resources.archivesspace.ArchivesSpaceRightsStatementAct"
+                },
+                {
+                    "act_type": "disseminate",
+                    "start_date": "2000-05-13",
+                    "end_date": "2012-06-21",
+                    "restriction": "disallow",
+                    "notes": [
+                        {
+                            "publish": false,
+                            "jsonmodel_type": "note_rights_statement_act",
+                            "type": "additional_information",
+                            "label": null,
+                            "subnotes": [],
+                            "content": [
+                                "10 year embargo in effect"
+                            ],
+                            "items": null,
+                            "$": "src.resources.archivesspace.ArchivesSpaceNote"
+                        }
+                    ],
+                    "$": "src.resources.archivesspace.ArchivesSpaceRightsStatementAct"
+                }
+            ],
+            "$": "src.resources.archivesspace.ArchivesSpaceRightsStatement"
+        }
+    ],
+    "linked_agents": [],
+    "ancestors": [
+        {
+            "ref": "/repositories/2/archival_objects/12330",
+            "level": "subseries"
+        },
+        {
+            "ref": "/repositories/2/archival_objects/12062",
+            "level": "series"
+        },
+        {
+            "ref": "/repositories/2/resources/93",
+            "level": "collection"
+        }
+    ],
+    "instances": [
+        {
+            "lock_version": 0,
+            "created_by": "admin",
+            "last_modified_by": "admin",
+            "create_time": "2021-08-18T15:59:27Z",
+            "system_mtime": "2021-08-18T15:59:27Z",
+            "user_mtime": "2021-08-18T15:59:27Z",
+            "instance_type": "mixed materials",
+            "jsonmodel_type": "instance",
+            "is_representative": false,
+            "sub_container": {
+                "lock_version": 0,
+                "indicator_2": "876",
+                "created_by": "admin",
+                "last_modified_by": "admin",
+                "create_time": "2021-08-18T15:59:27Z",
+                "system_mtime": "2021-08-18T15:59:27Z",
+                "user_mtime": "2021-08-18T15:59:27Z",
+                "type_2": "folder",
+                "jsonmodel_type": "sub_container",
+                "top_container": {
+                    "ref": "/repositories/2/top_containers/11192"
+                }
+            }
+        },
+        {
+            "instance_type": "digital_object",
+            "jsonmodel_type": "instance",
+            "digital_object": {
+                "ref": "/repositories/2/digital_objects/3"
+            }
+        }
+    ],
+    "notes": [
+        {
+            "jsonmodel_type": "note_multipart",
+            "persistent_id": "c0225216f8cc5a0773e2cb3b7b98da1f",
+            "label": "Scope and Contents note",
+            "type": "scopecontent",
+            "subnotes": [
+                {
+                    "jsonmodel_type": "note_text",
+                    "content": "Theater, performing arts, Children, disabilities.\n\n",
+                    "publish": true
+                }
+            ],
+            "publish": true
+        }
+    ],
+    "uri": "/repositories/2/archival_objects/12345",
+    "repository": {
+        "ref": "/repositories/2"
+    },
+    "resource": {
+        "ref": "/repositories/2/resources/93"
+    },
+    "parent": {
+        "ref": "/repositories/2/archival_objects/12330"
+    },
+    "has_unpublished_ancestor": false
+}

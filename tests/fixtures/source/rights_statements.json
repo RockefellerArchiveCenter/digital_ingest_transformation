@@ -1,0 +1,43 @@
+[
+    {
+        "terms": null,
+        "end_date": "open",
+        "basis_note": "Donor organization retains copyright",
+        "start_date": "2000-05-13",
+        "other_basis": null,
+        "jurisdiction": "us",
+        "rights_basis": "copyright",
+        "rights_granted": [],
+        "copyright_status": "unknown",
+        "statute_citation": null,
+        "determination_date": "2021-08-11"
+    },
+    {
+        "terms": null,
+        "end_date": "2012-06-21",
+        "basis_note": "Records are available for onsite research after a 10 year embargo.",
+        "start_date": "2000-05-13",
+        "other_basis": "donor",
+        "jurisdiction": null,
+        "rights_basis": "other",
+        "rights_granted": [
+            {
+                "act": "publish",
+                "end_date": "open",
+                "start_date": "2000-05-13",
+                "granted_note": "These can't go online",
+                "grant_restriction": "disallow"
+            },
+            {
+                "act": "disseminate",
+                "end_date": "2012-06-21",
+                "start_date": "2000-05-13",
+                "granted_note": "10 year embargo in effect",
+                "grant_restriction": "disallow"
+            }
+        ],
+        "copyright_status": null,
+        "statute_citation": null,
+        "determination_date": null
+    }
+]
