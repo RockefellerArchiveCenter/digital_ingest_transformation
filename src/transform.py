@@ -317,5 +317,31 @@ class PackageTransformer(object):
 
 
 if __name__ == "__main__":
-    # TODO pass in variables from env
-    PackageTransformer().run()
+    package_id = getenv("PACKAGE_ID")
+    sns_topic = getenv("AWS_SNS_TOPIC")
+    sns_role_arn = getenv("AWS_SNS_ROLE_ARN")
+    zodiac_baseurl = getenv("ZODIAC_BASEURL")
+    zodiac_api_key = getenv("ZODIAC_API_KEY")
+    aurora_baseurl = getenv("AURORA_BASEURL")
+    aurora_oauth_client_baseurl = getenv("AURORA_OAUTH_CLIENT_BASEURL")
+    aurora_oauth_client_id = getenv("AURORA_OAUTH_CLIENT_ID")
+    aurora_oauth_client_secret = getenv("AURORA_OAUTH_CLIENT_SECRET")
+    as_baseurl = getenv("AS_BASEURL")
+    as_username = getenv("AS_USERNAME")
+    as_password = getenv("AS_PASSWORD")
+    as_repo_id = getenv("AS_REPO_ID")
+    PackageTransformer(
+        package_id,
+        sns_topic,
+        sns_role_arn,
+        zodiac_baseurl,
+        zodiac_api_key,
+        aurora_baseurl,
+        aurora_oauth_client_baseurl,
+        aurora_oauth_client_id,
+        aurora_oauth_client_secret,
+        as_baseurl,
+        as_username,
+        as_password,
+        as_repo_id
+    ).run()
