@@ -81,18 +81,22 @@ class TransformMethodTest(TestCase):
             "origin": "digitization",
             "aurora_accession_identifier": accession_uri}
         mock_package_data.return_value = package_data
+        do_created = {"created": "do"}
+        mock_do.return_value = do_created
 
-        # self.transformer.run()
+        self.transformer.run()
 
-        # mock_package_data.assert_called_once_with(f'packages/{self.transformer.package_id}')
-        # for m in [mock_do, mock_update_ao, mock_update_aurora, mock_success_message]:
-        #     m.assert_called_once()  # TODO assert args, will require setting up returns from other mocks
-        #     m.reset_mock()
+        mock_package_data.assert_called_once_with(f'packages/{self.transformer.package_id}')
+        mock_do.assert_called_once_with(package_data)
+        mock_update_ao.assert_called_once_with(do_created)
+        mock_update_aurora.assert_called_once_with(do_created)
+        mock_success_message.assert_called_once_with(do_created)
 
-        # for m in [mock_accession_data, mock_accession, mock_group, mock_ao, mock_failure_message]:
-        #     m.assert_not_called()
+        for m in [mock_accession_data, mock_accession, mock_group, mock_ao, mock_failure_message]:
+            m.assert_not_called()
 
-        # mock_package_data.reset_mock()
+        for m in [mock_do, mock_update_ao, mock_update_aurora, mock_success_message, mock_package_data]:
+            m.reset_mock()
 
         """Asserts logic for aurora package."""
         package_data["origin"] = "aurora"
@@ -111,9 +115,10 @@ class TransformMethodTest(TestCase):
         self.transformer.run()
 
         mock_package_data.assert_called_once_with(f'packages/{self.transformer.package_id}')
-        for m in [mock_do, mock_update_ao, mock_update_aurora, mock_success_message]:
-            m.assert_called_once()  # TODO assert args, will require setting up returns from other mocks
-
+        mock_do.assert_called_once_with(ao_created)
+        mock_update_ao.assert_called_once_with(do_created)
+        mock_update_aurora.assert_called_once_with(do_created)
+        mock_success_message.assert_called_once_with(do_created)
         mock_accession_data.assert_called_once_with(accession_uri)
         mock_accession.assert_called_once_with(package_data, accession_data)
         mock_group.assert_called_once_with(accession_created, accession_data)
@@ -137,25 +142,25 @@ class TransformMethodTest(TestCase):
         package_data = json_from_fixture('source/package.json')
         accession_data = json_from_fixture('source/accession.json')
         accession_exists = json_from_fixture('source/accession--accession_exists.json')
-        linked_agents = json_from_fixture('transformed/linked_agents.json')  # TODO check this
+        linked_agents = json_from_fixture('transformed/linked_agents.json')
+        source_linked_agents = json_from_fixture('source/linked_agents.json')
         transformed_data = json_from_fixture('transformed/accession.json')
         returned_data = json_from_fixture('transformed/package--accession_created.json')
         mock_linked_agents.return_value = linked_agents
         mock_create.return_value = {'uri': '/repositories/2/accessions/4172'}
 
+        """Accession already exists."""
         output = self.transformer.create_accession(package_data, accession_exists)
         self.assertEqual(output, returned_data)
         for m in [mock_accession_number, mock_create, mock_linked_agents]:
             m.assert_not_called()
 
+        """New data created."""
         package_data = json_from_fixture('source/package.json')  # TODO this is dumb
         output = self.transformer.create_accession(package_data, accession_data)
         self.assertEqual(output, returned_data)
         mock_accession_number.assert_called_once()
-        mock_linked_agents.assert_called_once_with([  # TODO make this a fixture
-            {'name': 'Custard Pie Appreciation Consortium', 'type': 'organization'},
-            {'name': 'Desperate Dan Appreciation Society', 'type': 'organization'},
-            {'name': 'Donor Organization', 'type': 'organization'}])
+        mock_linked_agents.assert_called_once_with(source_linked_agents)
         mock_create.assert_called_once_with(transformed_data, "accession")
 
     @patch('src.clients.ArchivesSpaceClient.create')
@@ -165,23 +170,23 @@ class TransformMethodTest(TestCase):
         accession_data = json_from_fixture('source/accession.json')
         group_exists = json_from_fixture('source/accession--group_exists.json')
         linked_agents = json_from_fixture('transformed/linked_agents.json')
+        source_linked_agents = json_from_fixture('source/linked_agents.json')
         transformed_data = json_from_fixture('transformed/group.json')
         returned_data = json_from_fixture('transformed/package--group_created.json')
         mock_linked_agents.return_value = linked_agents
         mock_create.return_value = {'uri': '/repositories/2/archival_objects/4753'}
 
+        """Archival objects group already exists."""
         output = self.transformer.create_archival_objects_group(package_data, group_exists)
         self.assertEqual(output, returned_data)
         for m in [mock_create, mock_linked_agents]:
             m.assert_not_called()
 
+        """New data created."""
         package_data = json_from_fixture('source/package--accession_created.json')  # TODO this is dumb
         output = self.transformer.create_archival_objects_group(package_data, accession_data)
         self.assertEqual(output, returned_data)
-        mock_linked_agents.assert_called_once_with([  # TODO make this a fixture
-            {'name': 'Custard Pie Appreciation Consortium', 'type': 'organization'},
-            {'name': 'Desperate Dan Appreciation Society', 'type': 'organization'},
-            {'name': 'Donor Organization', 'type': 'organization'}])
+        mock_linked_agents.assert_called_once_with(source_linked_agents)
         mock_create.assert_called_once_with(transformed_data, "component")
 
     @patch('src.clients.ArchivesSpaceClient.create')
@@ -190,23 +195,23 @@ class TransformMethodTest(TestCase):
         package_data = json_from_fixture('source/package--group_created.json')
         ao_exists = json_from_fixture('source/package--ao_exists.json')
         linked_agents = json_from_fixture('transformed/linked_agents.json')
+        source_linked_agents = json_from_fixture('source/linked_agents.json')
         transformed_data = json_from_fixture('transformed/archival_object.json')
         returned_data = json_from_fixture('transformed/package--ao_created.json')
         returned_data_new_ao = json_from_fixture('transformed/package--ao_created--extra.json')  # TODO figure this out, this is BS
         mock_linked_agents.return_value = linked_agents
         mock_create.return_value = {'uri': '/repositories/2/archival_objects/2153'}
 
+        """Archival object already exists."""
         output = self.transformer.create_archival_object(ao_exists)
         self.assertEqual(output, returned_data)
         for m in [mock_create, mock_linked_agents]:
             m.assert_not_called()
 
+        """New data created."""
         output = self.transformer.create_archival_object(package_data)
         self.assertEqual(output, returned_data_new_ao)  # TODO we should not need a new fixture here
-        mock_linked_agents.assert_called_once_with([  # TODO make this a fixture
-            {'name': 'Custard Pie Appreciation Consortium', 'type': 'organization'},
-            {'name': 'Desperate Dan Appreciation Society', 'type': 'organization'},
-            {'name': 'Donor Organization', 'type': 'organization'}])
+        mock_linked_agents.assert_called_once_with(source_linked_agents)
         mock_create.assert_called_once_with(transformed_data, "component")
 
     @patch('src.clients.ArchivesSpaceClient.create')
@@ -222,6 +227,7 @@ class TransformMethodTest(TestCase):
         mock_create.return_value = {"uri": do_uri}
         mock_retrieve.return_value = as_archival_object
 
+        """Package originating in Aurora"""
         output = self.transformer.create_digital_object(package_data)
         self.assertEqual(output, returned_data)
         mock_retrieve.assert_called_once_with(package_data['identifiers']['archivesspace_archival_object'])
@@ -252,6 +258,7 @@ class TransformMethodTest(TestCase):
 
     @patch('src.clients.AuroraClient.update')
     def test_update_aurora(self, mock_update):
+        """Asserts args passed to client."""
         package_data = json_from_fixture('source/package--do_created.json')
         self.transformer.update_aurora(package_data)
 
@@ -259,6 +266,7 @@ class TransformMethodTest(TestCase):
 
     @patch('src.clients.ArchivesSpaceClient.get_or_create')
     def test_get_linked_agents(self, mock_get_or_create):
+        """Asserts transformation of linked agents."""
         source_agents = json_from_fixture('source/linked_agents.json')
         transformed_agents = json_from_fixture('transformed/linked_agents.json')
         as_agents = json_from_fixture('source/as_linked_agents.json')
@@ -272,6 +280,7 @@ class TransformMethodTest(TestCase):
 class HelperTests(TestCase):
 
     def test_handle_open_dates(self):
+        """Tests handle_open_dates helper."""
         input = json_from_fixture('source/rights_statements.json')
         expected = json_from_fixture('transformed/rights_statements.json')
 
