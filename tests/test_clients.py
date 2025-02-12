@@ -196,7 +196,7 @@ class AuroraClientTests(TestCase):
         output = self.client.strip_url(input)
         self.assertEqual(output, expected)
 
-    @patch('electronbonder.client.ElectronBond.patch')
+    @patch('electronbonder.client.ElectronBond.post')
     def test_update(self, mock_patch):
         """Asserts URL construction and exception handling."""
         data = {"foo": "bar"}

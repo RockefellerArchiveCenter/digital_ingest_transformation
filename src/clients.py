@@ -124,23 +124,22 @@ class AuroraClient:
             raise AuroraClientError("Could not authorize Client ID {} in Aurora".format(oauth_client_id))
 
     def strip_url(self, raw_url):
+        """Strips the hostname off the URL so that the configured hostname is used."""
         identifier = raw_url.rstrip("/").split("/")[-1]
         prefix = raw_url.rstrip("/").split("/")[-2]
         return f"/{prefix.lstrip('/')}/{identifier.lstrip('/')}/"
 
     def update(self, raw_url, data, **kwargs):
-        """Sends a PATCH request.
-
-        URL parsing strips the hostname off the URL so that the hostname
-        configured for AuroraClient is always used."""
+        """Sends a POST request."""
         url = self.strip_url(raw_url)
-        resp = self.client.patch(url, data=json.dumps(data), headers={"Content-Type": "application/json"}, **kwargs)
+        resp = self.client.post(url, data=json.dumps(data), headers={"Content-Type": "application/json"}, **kwargs)
         if resp.status_code == 200:
             return resp.json()
         else:
             raise AuroraClientError(f"Error sending request {url} to Aurora: {resp.status_code} {resp.text}")
 
     def get(self, raw_url, **kwargs):
+        """Sends a GET request."""
         url = self.strip_url(raw_url)
         resp = self.client.get(url, headers={"Content-Type": "application/json"}, **kwargs)
         if resp.status_code == 200:

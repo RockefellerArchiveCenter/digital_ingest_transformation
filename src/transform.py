@@ -62,16 +62,13 @@ class PackageTransformer(object):
                 aurora_accession_data = self.aurora_client.get(package_data['aurora_accession_identifier'])
                 accession_created = self.create_accession(package_data, aurora_accession_data)
                 group_created = self.create_archival_objects_group(accession_created, aurora_accession_data)
-                # TODO update accession data in Aurora - archivesspace_identifier and archivesspace_group_identifier
-                # Review update mechanism in Aurora - might be better to POST the object back rather than Patching
                 ao_created = self.create_archival_object(group_created)
                 package_data = ao_created
             do_created = self.create_digital_object(package_data)
             self.update_archival_object(do_created)
-            self.update_aurora(do_created)  # TODO update package data
+            self.aurora_client.update(do_created['url'], do_created)
             self.deliver_success_notification(do_created)
-            logging.info(
-                f'Data from package {self.package_id} transformed and saved.')
+            logging.info(f'Data from package {self.package_id} transformed and saved.')
         except Exception as err:
             self.deliver_failure_notification(err)
 
@@ -120,13 +117,16 @@ class PackageTransformer(object):
         if source_accession_data.get('archivesspace_identifier'):
             as_accession_uri = source_accession_data['archivesspace_identifier']
         else:
-            source_accession_data["accession_number"] = self.aspace_client.next_accession_number()
-            source_accession_data["linked_agents"] = self.get_linked_agents(
-                source_accession_data["creators"] + [{"name": source_accession_data["organization"], "type": "organization"}])
-            source_accession_data["rights_statements"] = handle_open_dates(
-                source_accession_data.get("rights_statements", []))
-            transformed = get_transformed_object(source_accession_data, SourceAccession, SourceAccessionToArchivesSpaceAccession)
+            to_transform = source_accession_data.copy()
+            to_transform["accession_number"] = self.aspace_client.next_accession_number()
+            to_transform["linked_agents"] = self.get_linked_agents(
+                to_transform["creators"] + [{"name": to_transform["organization"], "type": "organization"}])
+            to_transform["rights_statements"] = handle_open_dates(
+                to_transform.get("rights_statements", []))
+            transformed = get_transformed_object(to_transform, SourceAccession, SourceAccessionToArchivesSpaceAccession)
             as_accession_uri = self.aspace_client.create(transformed, "accession").get("uri")
+            source_accession_data['archivesspace_identifier'] = as_accession_uri
+            self.aurora_client.update(source_accession_data['url'], source_accession_data)
 
         identifiers = {
             'aurora_accession': source_accession_data['url'],
@@ -152,12 +152,15 @@ class PackageTransformer(object):
         if accession_data.get("archivesspace_group_identifier"):
             as_group_uri = accession_data['archivesspace_group_identifier']
         else:
-            accession_data["level"] = "recordgrp"
-            accession_data["linked_agents"] = self.get_linked_agents(
+            to_transform = accession_data.copy()
+            to_transform["level"] = "recordgrp"
+            to_transform["linked_agents"] = self.get_linked_agents(
                 accession_data["creators"] + [{"name": accession_data["organization"], "type": "organization"}])
-            accession_data["rights_statements"] = handle_open_dates(package_data.get("rights_statements", []))
-            transformed = get_transformed_object(accession_data, SourceAccession, SourceAccessionToGroupingComponent)
+            to_transform["rights_statements"] = handle_open_dates(package_data.get("rights_statements", []))
+            transformed = get_transformed_object(to_transform, SourceAccession, SourceAccessionToGroupingComponent)
             as_group_uri = self.aspace_client.create(transformed, "component").get("uri")
+            accession_data['archivesspace_group_identifier'] = as_group_uri
+            self.aurora_client.update(accession_data['url'], accession_data)
 
         package_data.setdefault('identifiers', {}).update({'archivesspace_group': as_group_uri})
         logging.debug(f'Grouping compnent {as_group_uri} created for package {package_data["identifier"]}')
@@ -175,14 +178,17 @@ class PackageTransformer(object):
         if package_data.get('archivesspace_identifier'):
             as_ao_uri = package_data['archivesspace_identifier']
         else:
-            package_data["parent"] = package_data['identifiers']['archivesspace_group']
-            package_data["resource"] = package_data['identifiers']['archivesspace_resource']
-            package_data["level"] = "file"
-            package_data["linked_agents"] = self.get_linked_agents(
+            to_transform = package_data.copy()
+            to_transform["parent"] = package_data['identifiers']['archivesspace_group']
+            to_transform["resource"] = package_data['identifiers']['archivesspace_resource']
+            to_transform["level"] = "file"
+            to_transform["linked_agents"] = self.get_linked_agents(
                 package_data["metadata"]["record_creators"] + [{"name": package_data["metadata"]["source_organization"], "type": "organization"}])
-            package_data["rights_statements"] = handle_open_dates(package_data.get("rights_statements", []))
-            transformed = get_transformed_object(package_data, SourcePackage, SourcePackageToComponent)
+            to_transform["rights_statements"] = handle_open_dates(package_data.get("rights_statements", []))
+            transformed = get_transformed_object(to_transform, SourcePackage, SourcePackageToComponent)
             as_ao_uri = self.aspace_client.create(transformed, "component").get("uri")
+            package_data['archivesspace_identifier'] = as_ao_uri
+            self.aurora_client.update(package_data['url'], package_data)
         package_data.setdefault('identifiers', {}).update({'archivesspace_archival_object': as_ao_uri})
         logging.debug(f'Archival object {as_ao_uri} created for package {package_data["identifier"]}')
         return package_data
@@ -239,16 +245,7 @@ class PackageTransformer(object):
              "jsonmodel_type": "instance",
              "digital_object": {"ref": do_uri}})
         self.aspace_client.update(package_data['identifiers']['archivesspace_archival_object'], archival_object)
-        logging.debug(f'Archival object {package_data["identifier"]["archivesspace_archival_object"]} updated for package {package_data["identifier"]}')
-
-    def update_aurora(self, package_data):
-        """Sends an update request to Aurora.
-
-        Args:
-            package_data (dict): Source package data.
-        """
-        self.aurora_client.update(package_data['url'], data=package_data)
-        logging.debug(f"Update request sent to aruroa with data {package_data}")
+        logging.debug(f'Archival object {package_data["identifiers"]["archivesspace_archival_object"]} updated for package {package_data["identifier"]}')
 
     def deliver_success_notification(self, package_data):
         """Send SNS message about successful job.
