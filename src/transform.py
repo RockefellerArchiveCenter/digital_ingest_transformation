@@ -23,9 +23,6 @@ logging.basicConfig(
     level=int(getenv('LOGGING_LEVEL', logging.INFO)),
     format='%(filename)s::%(funcName)s::%(lineno)s %(message)s')
 
-# TODO tidy up docstrings
-# TODO implement logging
-
 
 class PackageTransformer(object):
     """Transforms data associated with packages and saves it in external systems."""
@@ -73,6 +70,8 @@ class PackageTransformer(object):
             self.update_archival_object(do_created)
             self.update_aurora(do_created)  # TODO update package data
             self.deliver_success_notification(do_created)
+            logging.info(
+                f'Data from package {self.package_id} transformed and saved.')
         except Exception as err:
             self.deliver_failure_notification(err)
 
@@ -103,6 +102,7 @@ class PackageTransformer(object):
                 agent["type"], "title", agent["name"],
                 int(time()), json.loads(json_codec.dumps(agent_data)))
             linked_agents.append({"uri": agent_ref})
+        logging.debug(f'Linked agents {agents} transformed to {linked_agents}')
         return linked_agents
 
     def create_accession(self, package_data, source_accession_data):
@@ -136,6 +136,7 @@ class PackageTransformer(object):
             'archivesspace_resource': as_resource_uri
         }
         package_data.setdefault('identifiers', {}).update(identifiers)
+        logging.debug(f'Accession {as_accession_uri} created for package {package_data["identifier"]}')
         return package_data
 
     def create_archival_objects_group(self, package_data, accession_data):
@@ -159,6 +160,7 @@ class PackageTransformer(object):
             as_group_uri = self.aspace_client.create(transformed, "component").get("uri")
 
         package_data.setdefault('identifiers', {}).update({'archivesspace_group': as_group_uri})
+        logging.debug(f'Grouping compnent {as_group_uri} created for package {package_data["identifier"]}')
         return package_data
 
     def create_archival_object(self, package_data):
@@ -182,6 +184,7 @@ class PackageTransformer(object):
             transformed = get_transformed_object(package_data, SourcePackage, SourcePackageToComponent)
             as_ao_uri = self.aspace_client.create(transformed, "component").get("uri")
         package_data.setdefault('identifiers', {}).update({'archivesspace_archival_object': as_ao_uri})
+        logging.debug(f'Archival object {as_ao_uri} created for package {package_data["identifier"]}')
         return package_data
 
     def create_digital_object(self, package_data):
@@ -208,6 +211,7 @@ class PackageTransformer(object):
         digital_objects = package_data.get('identifiers', {}).get('digital_objects', [])
         digital_objects.append(do_uri)
         package_data.setdefault('identifiers', {}).update({'digital_objects': digital_objects})  # TODO add Storage ID?
+        logging.debug(f'Digital object {do_uri} created for package {package_data["identifier"]}')
         return package_data
 
     def update_archival_object(self, package_data, archival_object, do_uri):
@@ -235,6 +239,7 @@ class PackageTransformer(object):
              "jsonmodel_type": "instance",
              "digital_object": {"ref": do_uri}})
         self.aspace_client.update(package_data['identifiers']['archivesspace_archival_object'], archival_object)
+        logging.debug(f'Archival object {package_data["identifier"]["archivesspace_archival_object"]} updated for package {package_data["identifier"]}')
 
     def update_aurora(self, package_data):
         """Sends an update request to Aurora.
@@ -243,6 +248,7 @@ class PackageTransformer(object):
             package_data (dict): Source package data.
         """
         self.aurora_client.update(package_data['url'], data=package_data)
+        logging.debug(f"Update request sent to aruroa with data {package_data}")
 
     def deliver_success_notification(self, package_data):
         """Send SNS message about successful job.
