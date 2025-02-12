@@ -20,10 +20,10 @@ from .resources.archivesspace import (ArchivesSpaceAccession,
                                       ArchivesSpaceRightsStatement,
                                       ArchivesSpaceRightsStatementAct,
                                       ArchivesSpaceSubnote)
-from .resources.source import (SourceAccession, SourceCreator,
-                               SourceLinkedCreator, SourcePackage,
-                               SourceRightsStatement, SourceRightsStatementAct,
-                               SourceTransfer)
+from .resources.source import (SourceAccession, SourceArchivematicaPackage,
+                               SourceCreator, SourceLinkedCreator,
+                               SourcePackage, SourceRightsStatement,
+                               SourceRightsStatementAct)
 
 
 def map_dates(date_start, date_end):
@@ -258,8 +258,8 @@ class SourceAccessionToGroupingComponent(odin.Mapping):
         return data
 
 
-class SourceTransferToTransferComponent(odin.Mapping):
-    from_obj = SourceTransfer
+class SourcePackageToComponent(odin.Mapping):
+    from_obj = SourcePackage
     to_obj = ArchivesSpaceArchivalObject
 
     @odin.map_field(from_field="metadata", to_field="title")
@@ -308,8 +308,8 @@ class SourceTransferToTransferComponent(odin.Mapping):
             return ArchivesSpaceRef(ref=value)
 
 
-class SourcePackageToDigitalObject(odin.Mapping):
-    from_obj = SourcePackage
+class SourceArchivematicaPackageToDigitalObject(odin.Mapping):
+    from_obj = SourceArchivematicaPackage
     to_obj = ArchivesSpaceDigitalObject
 
     def extract_id(self, uri):

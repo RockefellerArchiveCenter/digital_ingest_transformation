@@ -141,30 +141,16 @@
             "endTime": "2021-08-18 18:29:03.912493+00:00"
         }
     ],
-    "archivesspace_identifier": null,
+    "archivesspace_identifier": "/repositories/2/archival_objects/2153",
     "archivesspace_parent_identifier": null,
     "created_time": "2021-08-18T14:29:03.159961-04:00",
     "modified_time": "2022-11-10T15:16:18.243515-05:00",
     "identifiers": {
         "aurora_accession": "https://aurora.dev.rockarch.org/api/accessions/237/",
-        "aurora_transfer": "https://aurora.dev.rockarch.org/api/transfers/1631/?format=json",
+        "aurora_package": "https://aurora.dev.rockarch.org/api/transfers/1631/?format=json",
         "archivesspace_accession": "/repositories/2/accessions/4172",
         "archivesspace_resource": "/repositories/2/resources/123",
         "archivesspace_group": "/repositories/2/archival_objects/4753",
-        "archivesspace_transfer": "/repositories/2/archival_objects/2153"
-    },
-    "parent": "/repositories/2/archival_objects/4753",
-    "resource": "/repositories/2/resources/123",
-    "level": "file",
-    "linked_agents": [
-        {
-            "uri": "/repositories/2/organizations/3"
-        },
-        {
-            "uri": "/repositories/2/organizations/4"
-        },
-        {
-            "uri": "/repositories/2/organizations/5"
-        }
-    ]
+        "archivesspace_archival_object": "/repositories/2/archival_objects/2153"
+    }
 }

@@ -11,20 +11,20 @@ from .helpers import (get_client_with_role, get_transformed_object,
                       handle_open_dates)
 from .mappings import (SourceAccessionToArchivesSpaceAccession,
                        SourceAccessionToGroupingComponent,
-                       SourcePackageToDigitalObject,
+                       SourceArchivematicaPackageToDigitalObject,
+                       SourcePackageToComponent,
                        SourceRightsStatementToArchivesSpaceRightsStatement,
-                       SourceTransferToTransferComponent, map_agents)
-from .resources.source import (SourceAccession, SourceCreator, SourcePackage,
-                               SourceRightsStatement, SourceTransfer)
+                       map_agents)
+from .resources.source import (SourceAccession, SourceArchivematicaPackage,
+                               SourceCreator, SourcePackage,
+                               SourceRightsStatement)
 
 logging.basicConfig(
     level=int(getenv('LOGGING_LEVEL', logging.INFO)),
     format='%(filename)s::%(funcName)s::%(lineno)s %(message)s')
 
-# TODO convert data structure of identifiers to dict, rather than list of dicts
 # TODO tidy up docstrings
 # TODO implement logging
-# TODO convert instances of "transfer" to "package"
 
 
 class PackageTransformer(object):
@@ -34,7 +34,7 @@ class PackageTransformer(object):
         Overriden by each other class based on their routines
         Accession: Handles creation and linking of accesssions in AS
         Grouping: Manages grouping archival objects
-        Transfer: Handles transfer objects and relationships to metadata
+        Packge: Handles package objects and relationships to metadata
         Digital Object: Creates digital objects in AS and updates archival objects"""
 
     def __init__(self,
@@ -68,11 +68,12 @@ class PackageTransformer(object):
                 aurora_accession_data = self.aurora_client.get(package_data['aurora_accession_identifier'])
                 accession_created = self.create_accession(package_data, aurora_accession_data)
                 group_created = self.create_archival_objects_group(accession_created, aurora_accession_data)
-                transfer_created = self.create_archival_object_transfer(group_created)
-                package_data = transfer_created
+                # TODO update accession data in Aurora - archivesspace_identifier and archivesspace_group_identifier
+                ao_created = self.create_archival_object(group_created)
+                package_data = ao_created
             do_created = self.create_digital_object(package_data)
             self.update_archival_object(do_created)
-            self.update_aurora(do_created)
+            self.update_aurora(do_created)  # TODO update package data
             self.deliver_success_notification(do_created)
         except Exception as err:
             self.deliver_failure_notification(err)
@@ -114,7 +115,7 @@ class PackageTransformer(object):
 
         identifiers = {
             'aurora_accession': source_accession_data['url'],
-            'aurora_transfer': package_data['url'],  # TODO should we pop this out of the package data?
+            'aurora_package': package_data['url'],  # TODO should we pop this out of the package data?
             'archivesspace_accession': as_accession_uri,
             'archivesspace_resource': as_resource_uri
         }
@@ -122,15 +123,15 @@ class PackageTransformer(object):
         return package_data
 
     def create_archival_objects_group(self, package_data, accession_data):
-        """Create a grouping component of related archival objects and organizes transfers into groups.
+        """Create a grouping component of related archival objects and organizes packages into groups.
             Creates an archival object for the first package in an acesssion. Links other packages to this archival object.
             Check for a first sibling
                 if yes: set the AS group URI to the first sibling's archivesspace group
                 if no: use the ursa major client to get accession information and then use the AS client to make an archival object
             set the archivesspace group to the archivesspace group uri.
         """
-        if accession_data.get("archivesspace_series_identifier"):  # TODO this field does not actually exist in Aurora right now. Needs to be added.
-            as_group_uri = accession_data['archivesspace_series_identifier']
+        if accession_data.get("archivesspace_group_identifier"):  # TODO this field does not actually exist in Aurora right now. Needs to be added.
+            as_group_uri = accession_data['archivesspace_group_identifier']
         else:
             accession_data["level"] = "recordgrp"
             accession_data["linked_agents"] = self.get_linked_agents(
@@ -143,13 +144,10 @@ class PackageTransformer(object):
         # TODO push group ID back to Aurora, or should this happen at the end?
         return package_data
 
-    def create_archival_object_transfer(self, package_data):
-        """Create a transfer level archival object which represents individual transfers and links them to existing groups.
-            Creates an AS archival object for the first package in the transfer. Other packages in the transfer are linked to this AO
-            Same as above, except for Transfer instead of Accession. Not exactly sure about the specifics of this.
-        """
+    def create_archival_object(self, package_data):
+        """Create a package level archival object."""
         if package_data.get('archivesspace_identifier'):
-            as_transfer_uri = package_data['archivesspace_identifier']
+            as_ao_uri = package_data['archivesspace_identifier']
         else:
             package_data["parent"] = package_data['identifiers']['archivesspace_group']
             package_data["resource"] = package_data['identifiers']['archivesspace_resource']
@@ -157,9 +155,9 @@ class PackageTransformer(object):
             package_data["linked_agents"] = self.get_linked_agents(
                 package_data["metadata"]["record_creators"] + [{"name": package_data["metadata"]["source_organization"], "type": "organization"}])
             package_data["rights_statements"] = handle_open_dates(package_data.get("rights_statements", []))
-            transformed = get_transformed_object(package_data, SourceTransfer, SourceTransferToTransferComponent)
-            as_transfer_uri = self.aspace_client.create(transformed, "component").get("uri")
-        package_data.setdefault('identifiers', {}).update({'archivesspace_transfer': as_transfer_uri})
+            transformed = get_transformed_object(package_data, SourcePackage, SourcePackageToComponent)
+            as_ao_uri = self.aspace_client.create(transformed, "component").get("uri")
+        package_data.setdefault('identifiers', {}).update({'archivesspace_archival_object': as_ao_uri})
         # TODO update zodiac api
         return package_data
 
@@ -174,14 +172,15 @@ class PackageTransformer(object):
         """
         data = {"storage_uri": package_data['storage_uri'],
                 "use_statement": package_data['use_statement']}  # TODO figure out what these attributes need to be. Does the webhook need to update package data?
-        transformed = get_transformed_object(data, SourcePackage, SourcePackageToDigitalObject)
-        transfer_component = self.aspace_client.retrieve(package_data['identifiers']['archivesspace_transfer'])  # TODO how do we get this for digitizd stuff?
-        transformed['title'] = transfer_component['display_string']
+        transformed = get_transformed_object(data, SourceArchivematicaPackage, SourceArchivematicaPackageToDigitalObject)
+        archival_object = self.aspace_client.retrieve(
+            package_data['identifiers']['archivesspace_archival_object'])  # TODO how do we get this for digitizd stuff?
+        transformed['title'] = archival_object['display_string']
         if package_data['origin'] == 'digitization':
             transformed['publish'] = True
         do_uri = self.aspace_client.create(transformed, "digital object").get("uri")
 
-        self.update_archival_object(transfer_component, do_uri)
+        self.update_archival_object(archival_object, do_uri)
 
         # TODO check this - can we condense this?
         digital_objects = package_data.get('identifiers', {}).get('digital_objects', [])
@@ -189,26 +188,26 @@ class PackageTransformer(object):
         package_data.setdefault('identifiers', {}).update({'digital_objects': updated_digital_objects})  # TODO add Storage ID?
         return package_data
 
-    def update_archival_object(self, package_data, transfer_component, do_uri):
+    def update_archival_object(self, package_data, archival_object, do_uri):
         """Update the archival object with additional data about the digital object
             Check for rights statements and updates it based on the Aurora rights?
         """
         # TODO add comment about why this rights statement business is here.
-        if not len(transfer_component.get("rights_statements")) and package_data['origin'] in ["digitization", "legacy_digital", "av_digitization"]:
+        if not len(archival_object.get("rights_statements")) and package_data['origin'] in ["digitization", "legacy_digital", "av_digitization"]:
             rights_data = package_data.get("rights_statements", [])
             transformed_rights = get_transformed_object(
                 handle_open_dates(rights_data), SourceRightsStatement, SourceRightsStatementToArchivesSpaceRightsStatement)
-            transfer_component["rights_statements"] = transformed_rights
-        transfer_component["instances"].append(
+            archival_object["rights_statements"] = transformed_rights
+        archival_object["instances"].append(
             {"instance_type": "digital_object",
              "jsonmodel_type": "instance",
              "digital_object": {"ref": do_uri}})
-        self.aspace_client.update(package_data['identifiers']['archivesspace_transfer'], transfer_component)
+        self.aspace_client.update(package_data['identifiers']['archivesspace_archival_object'], archival_object)
 
     def update_aurora(self, package_data):
         """Aurora Updates routine
             Send update requests for Aurora for different process statuses.
-            Push transfer data updates to Aurora when digital objects are made.
+            Push package data updates to Aurora when digital objects are made.
             Send updates about archival accession data to Aurora.
         """
         self.aurora_client.update(package_data['url'], data=package_data)

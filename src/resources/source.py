@@ -73,7 +73,7 @@ class SourceAccession(odin.Resource):
     level = odin.StringField(null=True)
 
 
-class SourceTransfer(odin.Resource):
+class SourcePackage(odin.Resource):
     metadata = odin.DictAs(SourceMetadata)
     url = odin.StringField()
     rights_statements = odin.ArrayOf(SourceRightsStatement)
@@ -83,6 +83,6 @@ class SourceTransfer(odin.Resource):
     level = odin.StringField()
 
 
-class SourcePackage(odin.Resource):
+class SourceArchivematicaPackage(odin.Resource):
     storage_uri = odin.StringField()
     use_statement = odin.StringField()

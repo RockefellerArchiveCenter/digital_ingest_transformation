@@ -66,7 +66,7 @@ class TransformMethodTest(TestCase):
     @patch('src.clients.AuroraClient.get')
     @patch('src.transform.PackageTransformer.create_accession')
     @patch('src.transform.PackageTransformer.create_archival_objects_group')
-    @patch('src.transform.PackageTransformer.create_archival_object_transfer')
+    @patch('src.transform.PackageTransformer.create_archival_object')
     @patch('src.transform.PackageTransformer.create_digital_object')
     @patch('src.transform.PackageTransformer.update_archival_object')
     @patch('src.transform.PackageTransformer.update_aurora')
@@ -186,23 +186,23 @@ class TransformMethodTest(TestCase):
 
     @patch('src.clients.ArchivesSpaceClient.create')
     @patch('src.transform.PackageTransformer.get_linked_agents')
-    def test_create_archival_object_transfer(self, mock_linked_agents, mock_create):
+    def test_create_archival_object(self, mock_linked_agents, mock_create):
         package_data = json_from_fixture('source/package--group_created.json')
-        transfer_exists = json_from_fixture('source/package--transfer_exists.json')
+        ao_exists = json_from_fixture('source/package--ao_exists.json')
         linked_agents = json_from_fixture('transformed/linked_agents.json')
-        transformed_data = json_from_fixture('transformed/transfer.json')
-        returned_data = json_from_fixture('transformed/package--transfer_created.json')
-        returned_data_new_transfer = json_from_fixture('transformed/package--transfer_created--extra.json')  # TODO figure this out, this is BS
+        transformed_data = json_from_fixture('transformed/archival_object.json')
+        returned_data = json_from_fixture('transformed/package--ao_created.json')
+        returned_data_new_ao = json_from_fixture('transformed/package--ao_created--extra.json')  # TODO figure this out, this is BS
         mock_linked_agents.return_value = linked_agents
         mock_create.return_value = {'uri': '/repositories/2/archival_objects/2153'}
 
-        output = self.transformer.create_archival_object_transfer(transfer_exists)
+        output = self.transformer.create_archival_object(ao_exists)
         self.assertEqual(output, returned_data)
         for m in [mock_create, mock_linked_agents]:
             m.assert_not_called()
 
-        output = self.transformer.create_archival_object_transfer(package_data)
-        self.assertEqual(output, returned_data_new_transfer)  # TODO we should not need a new fixture here
+        output = self.transformer.create_archival_object(package_data)
+        self.assertEqual(output, returned_data_new_ao)  # TODO we should not need a new fixture here
         mock_linked_agents.assert_called_once_with([  # TODO make this a fixture
             {'name': 'Custard Pie Appreciation Consortium', 'type': 'organization'},
             {'name': 'Desperate Dan Appreciation Society', 'type': 'organization'},
@@ -213,7 +213,7 @@ class TransformMethodTest(TestCase):
     @patch('src.clients.ArchivesSpaceClient.retrieve')
     @patch('src.transform.PackageTransformer.update_archival_object')
     def test_create_digital_object(self, mock_update_ao, mock_retrieve, mock_create):
-        package_data = json_from_fixture('source/package--transfer_created.json')
+        package_data = json_from_fixture('source/package--ao_created.json')
         # transformed_data = json_from_fixture('transformed/digital_object.json')
         returned_data = json_from_fixture('transformed/package--do_created.json')
         as_archival_object = json_from_fixture('source/as_archival_object.json')
@@ -224,7 +224,7 @@ class TransformMethodTest(TestCase):
 
         output = self.transformer.create_digital_object(package_data)
         self.assertEqual(output, returned_data)
-        mock_retrieve.assert_called_once_with(package_data['identifiers']['archivesspace_transfer'])
+        mock_retrieve.assert_called_once_with(package_data['identifiers']['archivesspace_archival_object'])
         mock_create.assert_called_once_with(  # TODO why does this not work with a fixture?
             {'jsonmodel_type': 'digital_object', 'publish': False, 'title': 'American Foundation for the Blind - Drama', 'digital_object_id': '0a9c6171-a18d-4ff6-b9e7-bef01aaded10', 'file_versions': [{'file_uri': '/aips/0a9c6171-a18d-4ff6-b9e7-bef01aaded10', 'use_statement': 'master', '$': 'src.resources.archivesspace.ArchivesSpaceFileVersion'}], 'repository': {'ref': '/repositories/2'}, '$': 'src.resources.archivesspace.ArchivesSpaceDigitalObject'}, 'digital object')
         mock_update_ao.assert_called_once_with(as_archival_object, do_uri)
@@ -235,20 +235,20 @@ class TransformMethodTest(TestCase):
     def test_update_archival_object(self, mock_update):
         package_data = json_from_fixture('source/package--do_created.json')
         package_data_digitization = json_from_fixture('source/package--do_created--digitization.json')
-        transfer_component = json_from_fixture('source/as_archival_object.json')
-        transfer_component_digitization = json_from_fixture('source/as_archival_object--digitization.json')
+        as_component = json_from_fixture('source/as_archival_object.json')
+        as_component_digitization = json_from_fixture('source/as_archival_object--digitization.json')
         transformed_as_archival_object = json_from_fixture('transformed/as_archival_object--with_do.json')
         transformed_as_archival_object_digitization = json_from_fixture('transformed/as_archival_object--with_do--digitization.json')
         do_uri = "/repositories/2/digital_objects/3"
 
         """Package originating in Aurora"""
-        self.transformer.update_archival_object(package_data, transfer_component, do_uri)
-        mock_update.assert_called_once_with(package_data['identifiers']['archivesspace_transfer'], transformed_as_archival_object)
+        self.transformer.update_archival_object(package_data, as_component, do_uri)
+        mock_update.assert_called_once_with(package_data['identifiers']['archivesspace_archival_object'], transformed_as_archival_object)
         mock_update.reset_mock()
 
         """Package originating in digitization"""
-        self.transformer.update_archival_object(package_data_digitization, transfer_component_digitization, do_uri)
-        mock_update.assert_called_once_with(package_data['identifiers']['archivesspace_transfer'], transformed_as_archival_object_digitization)
+        self.transformer.update_archival_object(package_data_digitization, as_component_digitization, do_uri)
+        mock_update.assert_called_once_with(package_data['identifiers']['archivesspace_archival_object'], transformed_as_archival_object_digitization)
 
     @patch('src.clients.AuroraClient.update')
     def test_update_aurora(self, mock_update):
