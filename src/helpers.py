@@ -1,11 +1,15 @@
 import json
 
+import boto3
+from aws_assume_role_lib import assume_role
 from odin.codecs import json_codec
 
 
-# TODO copy this in
-def get_client_with_role(*args):
-    pass
+def get_client_with_role(resource, role_arn):
+    """Gets Boto3 client which authenticates with a specific IAM role."""
+    session = boto3.Session()
+    assumed_role_session = assume_role(session, role_arn)
+    return assumed_role_session.client(resource)
 
 
 def get_transformed_object(data, from_resource, mapping):

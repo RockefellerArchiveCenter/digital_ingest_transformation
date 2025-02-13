@@ -1,4 +1,6 @@
 ArchivesSnake~=0.10
+aws_assume_role_lib~=2.10
+boto3~=1.36
 electronbonder~=2.2
 odin~=2.10
 requests~=2.32
