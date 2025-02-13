@@ -48,8 +48,6 @@ class TransformInitTests(TestCase):
 
 class TransformMethodTest(TestCase):
 
-    # TODO find better way of mocking data fixtures. They are getting overwritten
-
     def setUp(self):
         self.package_id = "package_id"
         self.args = [self.package_id, 'sns_topic', 'sns_role', 'zodiac_baseurl', 'zodiac_api_key', 'aurora_baseurl', 'aurora_oauth_client_baseurl',
@@ -155,7 +153,6 @@ class TransformMethodTest(TestCase):
             m.assert_not_called()
 
         """New data created."""
-        package_data = json_from_fixture('source/package.json')  # TODO this is dumb
         output = self.transformer.create_accession(package_data, accession_data)
         self.assertEqual(output, returned_data)
         mock_accession_number.assert_called_once()
@@ -184,7 +181,6 @@ class TransformMethodTest(TestCase):
             m.assert_not_called()
 
         """New data created."""
-        package_data = json_from_fixture('source/package--accession_created.json')  # TODO this is dumb
         output = self.transformer.create_archival_objects_group(package_data, accession_data)
         self.assertEqual(output, returned_data)
         mock_linked_agents.assert_called_once_with(source_linked_agents)
@@ -222,7 +218,7 @@ class TransformMethodTest(TestCase):
     @patch('src.transform.PackageTransformer.update_archival_object')
     def test_create_digital_object(self, mock_update_ao, mock_retrieve, mock_create):
         package_data = json_from_fixture('source/package--ao_created.json')
-        package_data_digitization = json_from_fixture('source/package--ao_created--digitization.json')  # TODO continues to be dumb
+        package_data_digitization = json_from_fixture('source/package--ao_created--digitization.json')
         transformed_data = json_from_fixture('transformed/digital_object.json')
         transformed_data_digitization = json_from_fixture('transformed/digital_object--digitization.json')
         returned_data = json_from_fixture('transformed/package--do_created.json')
