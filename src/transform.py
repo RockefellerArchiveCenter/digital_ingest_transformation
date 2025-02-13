@@ -166,7 +166,6 @@ class PackageTransformer(object):
             as_group_uri = self.aspace_client.create(transformed, "component").get("uri")
             accession_data['archivesspace_group_identifier'] = as_group_uri
             self.aurora_client.update(accession_data['url'], accession_data)
-
         package_data.setdefault('identifiers', {}).update({'archivesspace_group': as_group_uri})
         logging.debug(f'Grouping compnent {as_group_uri} created for package {package_data["identifier"]}')
         return package_data
@@ -258,7 +257,6 @@ class PackageTransformer(object):
         Args:
             package_data (dict): updated package data
         """
-        package_data['archivesspace_identifier'] = package_data['identifiers']['archivesspace_archival_object']
         package_data['archivesspace_parent_identifier'] = package_data['identifiers']['archivesspace_group']
         package_data['process_status'] = self.aurora_package_complete_status
         self.aurora_client.update(package_data['url'], package_data)

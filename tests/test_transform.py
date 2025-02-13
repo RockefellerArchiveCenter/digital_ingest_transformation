@@ -267,9 +267,8 @@ class TransformMethodTest(TestCase):
     def test_update_aurora_package(self, mock_update):
         """Asserts attributes are set correctly."""
         package_url = "https://aurora.rockarch.org/api/transfers/1"
-        initial_data = {"url": package_url, "identifiers": {"archivesspace_archival_object": "foo", "archivesspace_group": "bar"}}
+        initial_data = {"url": package_url, "identifiers": {"archivesspace_group": "bar"}}
         expected_data = initial_data.copy()
-        expected_data['archivesspace_identifier'] = 'foo'
         expected_data['archivesspace_parent_identifier'] = 'bar'
         expected_data['process_status'] = 90
 
