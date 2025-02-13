@@ -6,8 +6,6 @@ from electronbonder.client import ElectronBond
 from requests import Session
 from requests.exceptions import HTTPError
 
-# TODO imporove docstrings
-
 
 class ArchivesSpaceClientError(Exception):
     pass
@@ -23,8 +21,6 @@ class ZodiacClientError(Exception):
 
 class ArchivesSpaceClient(object):
     """Client to get and receive data from ArchivesSpace."""
-
-    # TODO is all this URI wrangling necessary?
 
     def __init__(self, baseurl, username, password, repo_id):
         self.client = ASnakeClient(baseurl=baseurl, username=username, password=password)
@@ -64,11 +60,20 @@ class ArchivesSpaceClient(object):
         return self.send_request("post", uri, data, **kwargs)
 
     def get_or_create(self, type, field, value, last_updated, consumer_data):
+        """Gets an object from ArchivesSpace, or creates a new one if it is not found.
+
+        Uses two different search strategies to account for indexing delays.
+
+        Args:
+            type (str): Type of object to return
+            field (str): Field present in the requested object
+            value (str): Value of the field in the requested object
+            last_updated (time.time): timestamp of current datetime
+            consumer_data (dict): data used to create a new object if none exists
+
+        Returns:
+            str: URI of requested object
         """
-        Attempts to find and return an object in ArchivesSpace.
-        If the object is not found, creates and returns a new object.
-        """
-        # TODO look at this a bit more closely, might be an opportunity to use it more directly
         model_type = self.TYPE_LIST[type][0]
         endpoint = self.TYPE_LIST[type][1]
         modified_since_backoff = 360
@@ -87,9 +92,10 @@ class ArchivesSpaceClient(object):
             raise ArchivesSpaceClientError("Error finding or creating object in ArchivesSpace: {}".format(e))
 
     def next_accession_number(self):
-        """
-        Finds the next available accession number by searching for accession
-        numbers with the current year, and then incrementing.
+        """Finds the next available accession number.
+
+        Searches for accession numbers with the current year, and then increments the latest by one.
+        If no accessions are found in the current year, starts with the number 001.
 
         Assumes that accession numbers are in the format YYYY NNN, where YYYY
         is the current year and NNN is a zero-padded integer.
@@ -130,7 +136,7 @@ class AuroraClient:
         return f"/{prefix.lstrip('/')}/{identifier.lstrip('/')}/"
 
     def update(self, raw_url, data, **kwargs):
-        """Sends a POST request."""
+        """Sends an HTTP POST request."""
         url = self.strip_url(raw_url)
         resp = self.client.post(url, data=json.dumps(data), headers={"Content-Type": "application/json"}, **kwargs)
         if resp.status_code == 200:
@@ -139,7 +145,7 @@ class AuroraClient:
             raise AuroraClientError(f"Error sending request {url} to Aurora: {resp.status_code} {resp.text}")
 
     def get(self, raw_url, **kwargs):
-        """Sends a GET request."""
+        """Sends an HTTP GET request."""
         url = self.strip_url(raw_url)
         resp = self.client.get(url, headers={"Content-Type": "application/json"}, **kwargs)
         if resp.status_code == 200:
@@ -159,6 +165,7 @@ class ZodiacClient(object):
         self.baseurl = baseurl.rstrip('/')
 
     def get(self, uri):
+        """Makes an HTTP GET request"""
         url = f'{self.baseurl}/{uri.lstrip("/")}'
         try:
             resp = self.session.get(url)
