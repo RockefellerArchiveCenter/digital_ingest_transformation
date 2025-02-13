@@ -1,3 +1,5 @@
+from os import getenv
+
 import odin
 
 from . import resource_configs
@@ -150,7 +152,7 @@ class ArchivesSpaceComponentBase(odin.Resource):
     linked_agents = odin.ArrayOf(ArchivesSpaceLinkedAgent)
     notes = odin.ArrayOf(ArchivesSpaceNote)
     publish = odin.BooleanField(default=False)
-    repository = odin.DictField()
+    repository = odin.DictField(default={"ref": f"/repositories/{getenv('AS_REPO_ID', 2)}"})
     rights_statements = odin.ArrayOf(ArchivesSpaceRightsStatement)
     title = odin.StringField(null=True)
     uri = odin.StringField()
@@ -208,4 +210,4 @@ class ArchivesSpaceDigitalObject(odin.Resource):
     title = odin.StringField()
     digital_object_id = odin.IntegerField()
     file_versions = odin.ArrayOf(ArchivesSpaceFileVersion)
-    repository = odin.DictField()
+    repository = odin.DictField(default={"ref": f"/repositories/{getenv('AS_REPO_ID', 2)}"})
