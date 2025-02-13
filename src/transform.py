@@ -37,6 +37,8 @@ class PackageTransformer(object):
                  aurora_oauth_client_baseurl,
                  aurora_oauth_client_id,
                  aurora_oauth_client_secret,
+                 aurora_accession_started_status,
+                 aurora_package_complete_status,
                  as_baseurl,
                  as_username,
                  as_password,
@@ -53,6 +55,8 @@ class PackageTransformer(object):
             aurora_oauth_client_baseurl,
             aurora_oauth_client_id,
             aurora_oauth_client_secret)
+        self.aurora_accession_started_status = aurora_accession_started_status
+        self.aurora_package_complete_status = aurora_package_complete_status
 
     def run(self):
         """Main class method which calls all other methods."""
@@ -66,7 +70,7 @@ class PackageTransformer(object):
                 package_data = ao_created
             do_created = self.create_digital_object(package_data)
             self.update_archival_object(do_created)
-            self.aurora_client.update(do_created['url'], do_created)
+            self.update_aurora_package(do_created)
             self.deliver_success_notification(do_created)
             logging.info(f'Data from package {self.package_id} transformed and saved.')
         except Exception as err:
@@ -126,6 +130,7 @@ class PackageTransformer(object):
             transformed = get_transformed_object(to_transform, SourceAccession, SourceAccessionToArchivesSpaceAccession)
             as_accession_uri = self.aspace_client.create(transformed, "accession").get("uri")
             source_accession_data['archivesspace_identifier'] = as_accession_uri
+            source_accession_data['process_status'] = self.aurora_accession_started_status
             self.aurora_client.update(source_accession_data['url'], source_accession_data)
 
         identifiers = {
@@ -247,6 +252,17 @@ class PackageTransformer(object):
         self.aspace_client.update(package_data['identifiers']['archivesspace_archival_object'], archival_object)
         logging.debug(f'Archival object {package_data["identifiers"]["archivesspace_archival_object"]} updated for package {package_data["identifier"]}')
 
+    def update_aurora_package(self, package_data):
+        """Updates identifiers and process status and sends data to Aurora.
+
+        Args:
+            package_data (dict): updated package data
+        """
+        package_data['archivesspace_identifier'] = package_data['identifiers']['archivesspace_archival_object']
+        package_data['archivesspace_parent_identifier'] = package_data['identifiers']['archivesspace_group']
+        package_data['process_status'] = self.aurora_package_complete_status
+        self.aurora_client.update(package_data['url'], package_data)
+
     def deliver_success_notification(self, package_data):
         """Send SNS message about successful job.
 
@@ -323,6 +339,8 @@ if __name__ == "__main__":
     aurora_oauth_client_baseurl = getenv("AURORA_OAUTH_CLIENT_BASEURL")
     aurora_oauth_client_id = getenv("AURORA_OAUTH_CLIENT_ID")
     aurora_oauth_client_secret = getenv("AURORA_OAUTH_CLIENT_SECRET")
+    aurora_accession_started_status = int(getenv("AURORA_ACCESSION_STARTED_STATUS"))
+    aurora_package_complete_status = int(getenv("AURORA_PACKAGE_COMPLETE_STATUS"))
     as_baseurl = getenv("AS_BASEURL")
     as_username = getenv("AS_USERNAME")
     as_password = getenv("AS_PASSWORD")
@@ -337,6 +355,8 @@ if __name__ == "__main__":
         aurora_oauth_client_baseurl,
         aurora_oauth_client_id,
         aurora_oauth_client_secret,
+        aurora_accession_started_status,
+        aurora_package_complete_status,
         as_baseurl,
         as_username,
         as_password,

@@ -26,7 +26,7 @@ class TransformInitTests(TestCase):
 
     def setUp(self):
         self.args = ['package_id', 'sns_topic', 'sns_role', 'zodiac_baseurl', 'zodiac_api_key', 'aurora_baseurl', 'aurora_oauth_client_baseurl',
-                     'aurora_oauth_client_id', 'aurora_oauth_client_secret', 'as_baseurl', 'as_username', 'as_password', 'as_repo_id']
+                     'aurora_oauth_client_id', 'aurora_oauth_client_secret', 30, 90, 'as_baseurl', 'as_username', 'as_password', 'as_repo_id']
 
     @patch('src.clients.ZodiacClient.__init__')
     @patch('src.clients.ArchivesSpaceClient.__init__')
@@ -42,7 +42,7 @@ class TransformInitTests(TestCase):
         self.assertEqual(transformer.service_name, 'aquarius')
         self.assertEqual(transformer.package_id, self.args[0])
         mock_aurora.assert_called_once_with(self.args[5], self.args[6], self.args[7], self.args[8])
-        mock_as.assert_called_once_with(self.args[9], self.args[10], self.args[11], self.args[12])
+        mock_as.assert_called_once_with(self.args[11], self.args[12], self.args[13], self.args[14])
         mock_zodiac.assert_called_once_with(self.args[3], self.args[4])
 
 
@@ -53,7 +53,7 @@ class TransformMethodTest(TestCase):
     def setUp(self):
         self.package_id = "package_id"
         self.args = [self.package_id, 'sns_topic', 'sns_role', 'zodiac_baseurl', 'zodiac_api_key', 'aurora_baseurl', 'aurora_oauth_client_baseurl',
-                     'aurora_oauth_client_id', 'aurora_oauth_client_secret', 'as_baseurl', 'as_username', 'as_password', 'as_repo_id']
+                     'aurora_oauth_client_id', 'aurora_oauth_client_secret', 30, 90, 'as_baseurl', 'as_username', 'as_password', 'as_repo_id']
         with patch('src.clients.ArchivesSpaceClient.__init__') as as_init:
             as_init.return_value = None
             with patch('src.clients.AuroraClient.__init__') as aurora_init:
@@ -62,17 +62,16 @@ class TransformMethodTest(TestCase):
 
     @patch('src.clients.ZodiacClient.get')
     @patch('src.clients.AuroraClient.get')
-    @patch('src.clients.AuroraClient.update')
     @patch('src.transform.PackageTransformer.create_accession')
     @patch('src.transform.PackageTransformer.create_archival_objects_group')
     @patch('src.transform.PackageTransformer.create_archival_object')
     @patch('src.transform.PackageTransformer.create_digital_object')
     @patch('src.transform.PackageTransformer.update_archival_object')
+    @patch('src.transform.PackageTransformer.update_aurora_package')
     @patch('src.transform.PackageTransformer.deliver_success_notification')
     @patch('src.transform.PackageTransformer.deliver_failure_notification')
-    def test_run(self, mock_failure_message, mock_success_message, mock_update_ao,
-                 mock_do, mock_ao, mock_group, mock_accession, mock_update_aurora,
-                 mock_accession_data, mock_package_data):
+    def test_run(self, mock_failure_message, mock_success_message, mock_update_aurora, mock_update_ao,
+                 mock_do, mock_ao, mock_group, mock_accession, mock_accession_data, mock_package_data):
         """Asserts logic for digitization package."""
         accession_uri = "https://aurora.dev.rockarch.org/api/accessions/21"
         package_data = {
@@ -88,7 +87,7 @@ class TransformMethodTest(TestCase):
         mock_package_data.assert_called_once_with(f'packages/{self.transformer.package_id}')
         mock_do.assert_called_once_with(package_data)
         mock_update_ao.assert_called_once_with(do_created)
-        mock_update_aurora.assert_called_once_with("foo", do_created)
+        mock_update_aurora.assert_called_once_with(do_created)
         mock_success_message.assert_called_once_with(do_created)
 
         for m in [mock_accession_data, mock_accession, mock_group, mock_ao, mock_failure_message]:
@@ -116,7 +115,7 @@ class TransformMethodTest(TestCase):
         mock_package_data.assert_called_once_with(f'packages/{self.transformer.package_id}')
         mock_do.assert_called_once_with(ao_created)
         mock_update_ao.assert_called_once_with(do_created)
-        mock_update_aurora.assert_called_once_with("foo", do_created)
+        mock_update_aurora.assert_called_once_with(do_created)
         mock_success_message.assert_called_once_with(do_created)
         mock_accession_data.assert_called_once_with(accession_uri)
         mock_accession.assert_called_once_with(package_data, accession_data)
@@ -267,6 +266,19 @@ class TransformMethodTest(TestCase):
         """Package originating in digitization"""
         self.transformer.update_archival_object(package_data_digitization, as_component_digitization, do_uri)
         mock_update.assert_called_once_with(package_data['identifiers']['archivesspace_archival_object'], transformed_as_archival_object_digitization)
+
+    @patch('src.clients.AuroraClient.update')
+    def test_update_aurora_package(self, mock_update):
+        """Asserts attributes are set correctly."""
+        package_url = "https://aurora.rockarch.org/api/transfers/1"
+        initial_data = {"url": package_url, "identifiers": {"archivesspace_archival_object": "foo", "archivesspace_group": "bar"}}
+        expected_data = initial_data.copy()
+        expected_data['archivesspace_identifier'] = 'foo'
+        expected_data['archivesspace_parent_identifier'] = 'bar'
+        expected_data['process_status'] = 90
+
+        self.transformer.update_aurora_package(initial_data)
+        mock_update.assert_called_once_with(package_url, expected_data)
 
     @patch('src.clients.ArchivesSpaceClient.get_or_create')
     def test_get_linked_agents(self, mock_get_or_create):
