@@ -32,7 +32,6 @@ class PackageTransformer(object):
                  sns_topic,
                  sns_role_arn,
                  zodiac_baseurl,
-                 zodiac_api_key,
                  aurora_baseurl,
                  aurora_oauth_client_baseurl,
                  aurora_oauth_client_id,
@@ -47,7 +46,7 @@ class PackageTransformer(object):
         self.package_id = package_id
         self.sns_topic = sns_topic
         self.sns_role_arn = sns_role_arn
-        self.zodiac_client = ZodiacClient(zodiac_baseurl, zodiac_api_key)
+        self.zodiac_client = ZodiacClient(zodiac_baseurl)
         self.aspace_client = ArchivesSpaceClient(
             as_baseurl, as_username, as_password, as_repo_id)
         self.aurora_client = AuroraClient(
@@ -332,7 +331,6 @@ if __name__ == "__main__":
     sns_topic = getenv("AWS_SNS_TOPIC")
     sns_role_arn = getenv("AWS_SNS_ROLE_ARN")
     zodiac_baseurl = getenv("ZODIAC_BASEURL")
-    zodiac_api_key = getenv("ZODIAC_API_KEY")
     aurora_baseurl = getenv("AURORA_BASEURL")
     aurora_oauth_client_baseurl = getenv("AURORA_OAUTH_CLIENT_BASEURL")
     aurora_oauth_client_id = getenv("AURORA_OAUTH_CLIENT_ID")
@@ -348,7 +346,6 @@ if __name__ == "__main__":
         sns_topic,
         sns_role_arn,
         zodiac_baseurl,
-        zodiac_api_key,
         aurora_baseurl,
         aurora_oauth_client_baseurl,
         aurora_oauth_client_id,

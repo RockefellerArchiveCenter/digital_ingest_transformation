@@ -25,7 +25,7 @@ def json_from_fixture(fixture_name):
 class TransformInitTests(TestCase):
 
     def setUp(self):
-        self.args = ['package_id', 'sns_topic', 'sns_role', 'zodiac_baseurl', 'zodiac_api_key', 'aurora_baseurl', 'aurora_oauth_client_baseurl',
+        self.args = ['package_id', 'sns_topic', 'sns_role', 'zodiac_baseurl', 'aurora_baseurl', 'aurora_oauth_client_baseurl',
                      'aurora_oauth_client_id', 'aurora_oauth_client_secret', 30, 90, 'as_baseurl', 'as_username', 'as_password', 'as_repo_id']
 
     @patch('src.clients.ZodiacClient.__init__')
@@ -41,16 +41,16 @@ class TransformInitTests(TestCase):
 
         self.assertEqual(transformer.service_name, 'aquarius')
         self.assertEqual(transformer.package_id, self.args[0])
-        mock_aurora.assert_called_once_with(self.args[5], self.args[6], self.args[7], self.args[8])
-        mock_as.assert_called_once_with(self.args[11], self.args[12], self.args[13], self.args[14])
-        mock_zodiac.assert_called_once_with(self.args[3], self.args[4])
+        mock_aurora.assert_called_once_with(self.args[4], self.args[5], self.args[6], self.args[7])
+        mock_as.assert_called_once_with(self.args[10], self.args[11], self.args[12], self.args[13])
+        mock_zodiac.assert_called_once_with(self.args[3])
 
 
 class TransformMethodTest(TestCase):
 
     def setUp(self):
         self.package_id = "package_id"
-        self.args = [self.package_id, 'sns_topic', 'sns_role', 'zodiac_baseurl', 'zodiac_api_key', 'aurora_baseurl', 'aurora_oauth_client_baseurl',
+        self.args = [self.package_id, 'sns_topic', 'sns_role', 'zodiac_baseurl', 'aurora_baseurl', 'aurora_oauth_client_baseurl',
                      'aurora_oauth_client_id', 'aurora_oauth_client_secret', 30, 90, 'as_baseurl', 'as_username', 'as_password', 'as_repo_id']
         with patch('src.clients.ArchivesSpaceClient.__init__') as as_init:
             as_init.return_value = None

@@ -236,15 +236,14 @@ class AuroraClientTests(TestCase):
 class ZodiacClientTests(TestCase):
 
     def setUp(self):
-        self.args = ["https://zodiac.org/", "1a2b3c4d5e6f7h8i9j"]
-        self.client = ZodiacClient(*self.args)
+        self.baseurl = "https://zodiac.org/"
+        self.client = ZodiacClient(self.baseurl)
 
     def test_init(self):
         """Asserts attributes are set correctly"""
         self.assertIsInstance(self.client.session, Session)
         self.assertEqual(self.client.session.headers['Accept'], 'application/json')
-        self.assertEqual(self.client.session.headers['X-Api-Key'], self.args[1])
-        self.assertEqual(self.client.baseurl, self.args[0].rstrip('/'))
+        self.assertEqual(self.client.baseurl, self.baseurl.rstrip('/'))
 
     @patch('src.clients.Session.get')
     def test_get(self, mock_get):

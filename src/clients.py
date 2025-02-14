@@ -156,11 +156,10 @@ class AuroraClient:
 
 class ZodiacClient(object):
 
-    def __init__(self, baseurl, api_key):
+    def __init__(self, baseurl):
         self.session = Session()
         self.session.headers.update({
             'Accept': 'application/json',
-            'X-Api-Key': api_key
         })
         self.baseurl = baseurl.rstrip('/')
 
