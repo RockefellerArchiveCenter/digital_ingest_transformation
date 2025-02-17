@@ -69,7 +69,8 @@ class PackageTransformer(object):
                 package_data = ao_created
             do_created = self.create_digital_object(package_data)
             self.update_archival_object(do_created)
-            self.update_aurora_package(do_created)
+            if self.is_aurora_package(do_created):
+                self.update_aurora_package(do_created)
             self.deliver_success_notification(do_created)
             logging.info(f'Data from package {self.package_id} transformed and saved.')
         except Exception as err:
@@ -128,14 +129,14 @@ class PackageTransformer(object):
                 to_transform.get("rights_statements", []))
             transformed = get_transformed_object(to_transform, SourceAccession, SourceAccessionToArchivesSpaceAccession)
             as_accession_uri = self.aspace_client.create(transformed, "accession").get("uri")
+
+            """Update accession data in Aurora."""
             source_accession_data['archivesspace_identifier'] = as_accession_uri
             source_accession_data['process_status'] = self.aurora_accession_started_status
             self.aurora_client.update(source_accession_data['url'], source_accession_data)
 
         identifiers = {
             'aurora_accession': source_accession_data['url'],
-            # TODO this should be in the identifiers array already. If it is still in the `url` field it should be popped out of the package data?
-            'aurora_package': package_data['url'],
             'archivesspace_accession': as_accession_uri,
             'archivesspace_resource': as_resource_uri
         }
@@ -163,10 +164,11 @@ class PackageTransformer(object):
             to_transform["rights_statements"] = handle_open_dates(package_data.get("rights_statements", []))
             transformed = get_transformed_object(to_transform, SourceAccession, SourceAccessionToGroupingComponent)
             as_group_uri = self.aspace_client.create(transformed, "component").get("uri")
+            """Update accession data in Aurora"""
             accession_data['archivesspace_group_identifier'] = as_group_uri
             self.aurora_client.update(accession_data['url'], accession_data)
         package_data.setdefault('identifiers', {}).update({'archivesspace_group': as_group_uri})
-        logging.debug(f'Grouping compnent {as_group_uri} created for package {package_data["identifier"]}')
+        logging.debug(f'Grouping component {as_group_uri} created for package {package_data["identifier"]}')
         return package_data
 
     def create_archival_object(self, package_data):
@@ -190,6 +192,7 @@ class PackageTransformer(object):
             to_transform["rights_statements"] = handle_open_dates(package_data.get("rights_statements", []))
             transformed = get_transformed_object(to_transform, SourcePackage, SourcePackageToComponent)
             as_ao_uri = self.aspace_client.create(transformed, "component").get("uri")
+            """Update package data in Aurora."""
             package_data['archivesspace_identifier'] = as_ao_uri
             self.aurora_client.update(package_data['url'], package_data)
         package_data.setdefault('identifiers', {}).update({'archivesspace_archival_object': as_ao_uri})
@@ -205,6 +208,8 @@ class PackageTransformer(object):
         Returns:
             package_data (dict): Updated package data
         """
+        # TODO fetch data from Archivematica
+        # Create AM client, infer use_statement and construct storage_uri
         data = {"storage_uri": package_data['storage_uri'],
                 "use_statement": package_data['use_statement']}
         transformed = get_transformed_object(data, SourceArchivematicaPackage, SourceArchivematicaPackageToDigitalObject)
@@ -253,12 +258,14 @@ class PackageTransformer(object):
     def update_aurora_package(self, package_data):
         """Updates identifiers and process status and sends data to Aurora.
 
+        The `archivesspace_archival_object` identifier has already been added in the `create_archival_object` method.
+
         Args:
             package_data (dict): updated package data
         """
         package_data['archivesspace_parent_identifier'] = package_data['identifiers']['archivesspace_group']
         package_data['process_status'] = self.aurora_package_complete_status
-        self.aurora_client.update(package_data['url'], package_data)
+        self.aurora_client.update(package_data['identifiers']['aurora_package'], package_data)
 
     def deliver_success_notification(self, package_data):
         """Send SNS message about successful job.

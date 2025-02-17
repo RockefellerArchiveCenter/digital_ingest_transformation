@@ -85,13 +85,12 @@ class TransformMethodTest(TestCase):
         mock_package_data.assert_called_once_with(f'packages/{self.transformer.package_id}')
         mock_do.assert_called_once_with(package_data)
         mock_update_ao.assert_called_once_with(do_created)
-        mock_update_aurora.assert_called_once_with(do_created)
         mock_success_message.assert_called_once_with(do_created)
 
-        for m in [mock_accession_data, mock_accession, mock_group, mock_ao, mock_failure_message]:
+        for m in [mock_accession_data, mock_accession, mock_group, mock_ao, mock_update_aurora, mock_failure_message]:
             m.assert_not_called()
 
-        for m in [mock_do, mock_update_ao, mock_update_aurora, mock_success_message, mock_package_data]:
+        for m in [mock_do, mock_update_ao, mock_success_message, mock_package_data]:
             m.reset_mock()
 
         """Asserts logic for Aurora package."""
@@ -101,7 +100,7 @@ class TransformMethodTest(TestCase):
         accession_created = {"created": "accession"}
         group_created = {"created": "group"}
         ao_created = {"created": "ao"}
-        do_created = {"created": "do", "url": "foo"}
+        do_created = {"created": "do", "url": "foo", "origin": "aurora"}
         mock_accession_data.return_value = accession_data
         mock_accession.return_value = accession_created
         mock_group.return_value = group_created
@@ -267,7 +266,7 @@ class TransformMethodTest(TestCase):
     def test_update_aurora_package(self, mock_update):
         """Asserts attributes are set correctly."""
         package_url = "https://aurora.rockarch.org/api/transfers/1"
-        initial_data = {"url": package_url, "identifiers": {"archivesspace_group": "bar"}}
+        initial_data = {"identifiers": {"archivesspace_group": "bar", "aurora_package": package_url}}
         expected_data = initial_data.copy()
         expected_data['archivesspace_parent_identifier'] = 'bar'
         expected_data['process_status'] = 90
