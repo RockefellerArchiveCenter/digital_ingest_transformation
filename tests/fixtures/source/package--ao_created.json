@@ -151,8 +151,7 @@
         "archivesspace_accession": "/repositories/2/accessions/4172",
         "archivesspace_resource": "/repositories/2/resources/123",
         "archivesspace_group": "/repositories/2/archival_objects/4753",
-        "archivesspace_archival_object": "/repositories/2/archival_objects/2153"
-    },
-    "storage_uri": "/aips/0a9c6171-a18d-4ff6-b9e7-bef01aaded10",
-    "use_statement": "master"
+        "archivesspace_archival_object": "/repositories/2/archival_objects/2153",
+        "archivematica_uuid": "0a9c6171-a18d-4ff6-b9e7-bef01aaded10"
+    }
 }

@@ -1,0 +1,16 @@
+{
+    "ARCHIVEMATICA_SS_API_KEY": "am_api_key",
+    "ARCHIVEMATICA_SS_USER_NAME": "am_user_name",
+    "ARCHIVEMATICA_SS_URL": "am_url",
+    "ZODIAC_BASEURL": "zodiac_baseurl",
+    "AS_BASEURL": "as_baseurl",
+    "AS_USERNAME": "as_username",
+    "AS_PASSWORD": "as_password",
+    "AS_REPO_ID": "as_repo_id",
+    "AURORA_BASEURL": "aurora_baseurl",
+    "AURORA_OAUTH_CLIENT_BASEURL": "aurora_oauth_client_baseurl",
+    "AURORA_OAUTH_CLIENT_ID": "aurora_oauth_client_id",
+    "AURORA_OAUTH_CLIENT_SECRET": "aurora_oauth_client_secret",
+    "AURORA_ACCESSION_STARTED_STATUS": 30,
+    "AURORA_PACKAGE_COMPLETE_STATUS": 90
+}

@@ -4,6 +4,7 @@ import traceback
 from os import getenv
 from time import time
 
+from amclient import AMClient, errors
 from odin.codecs import json_codec
 
 from .clients import ArchivesSpaceClient, AuroraClient, ZodiacClient
@@ -28,34 +29,34 @@ class PackageTransformer(object):
     """Transforms data associated with packages and saves it in external systems."""
 
     def __init__(self,
+                 environment,
                  package_id,
                  sns_topic,
                  sns_role_arn,
-                 zodiac_baseurl,
-                 aurora_baseurl,
-                 aurora_oauth_client_baseurl,
-                 aurora_oauth_client_id,
-                 aurora_oauth_client_secret,
-                 aurora_accession_started_status,
-                 aurora_package_complete_status,
-                 as_baseurl,
-                 as_username,
-                 as_password,
-                 as_repo_id):
+                 ssm_role_arn):
         self.service_name = 'aquarius'
         self.package_id = package_id
         self.sns_topic = sns_topic
         self.sns_role_arn = sns_role_arn
-        self.zodiac_client = ZodiacClient(zodiac_baseurl)
+        self.ssm_role_arn = ssm_role_arn
+        self.config = self.get_config(environment)
+        self.archivematica_client = AMClient(
+            ss_api_key=self.config['ARCHIVEMATICA_SS_API_KEY'],
+            ss_user_name=self.config['ARCHIVEMATICA_SS_USER_NAME'],
+            ss_url=self.config['ARCHIVEMATICA_SS_URL'])
+        self.zodiac_client = ZodiacClient(self.config['ZODIAC_BASEURL'])
         self.aspace_client = ArchivesSpaceClient(
-            as_baseurl, as_username, as_password, as_repo_id)
+            self.config['AS_BASEURL'],
+            self.config['AS_USERNAME'],
+            self.config['AS_PASSWORD'],
+            self.config['AS_REPO_ID'])
         self.aurora_client = AuroraClient(
-            aurora_baseurl,
-            aurora_oauth_client_baseurl,
-            aurora_oauth_client_id,
-            aurora_oauth_client_secret)
-        self.aurora_accession_started_status = aurora_accession_started_status
-        self.aurora_package_complete_status = aurora_package_complete_status
+            self.config['AURORA_BASEURL'],
+            self.config['AURORA_OAUTH_CLIENT_BASEURL'],
+            self.config['AURORA_OAUTH_CLIENT_ID'],
+            self.config['AURORA_OAUTH_CLIENT_SECRET'])
+        self.aurora_accession_started_status = self.config['AURORA_ACCESSION_STARTED_STATUS']
+        self.aurora_package_complete_status = self.config['AURORA_PACKAGE_COMPLETE_STATUS']
 
     def run(self):
         """Main class method which calls all other methods."""
@@ -75,6 +76,36 @@ class PackageTransformer(object):
             logging.info(f'Data from package {self.package_id} transformed and saved.')
         except Exception as err:
             self.deliver_failure_notification(err)
+
+    def get_config(self, environment):
+        """Fetch config values from Parameter Store.
+
+        Args:
+            ssm_parameter_path (str): Path to parameters
+
+        Returns:
+            configuration (dict): all parameters found at the supplied path.
+        """
+        ssm_parameter_path = f"/{environment}/{self.service_name}"
+        configuration = {}
+        ssm_client = get_client_with_role('ssm', self.ssm_role_arn)
+        try:
+            param_details = ssm_client.get_parameters_by_path(
+                Path=ssm_parameter_path,
+                Recursive=False,
+                WithDecryption=True)
+
+            for param in param_details.get('Parameters', []):
+                param_path_array = param.get('Name').split("/")
+                section_position = len(param_path_array) - 1
+                section_name = param_path_array[section_position]
+                configuration[section_name] = param.get('Value')
+
+        except BaseException:
+            print("Encountered an error loading config from SSM.")
+            traceback.print_exc()
+        finally:
+            return configuration
 
     def is_aurora_package(self, package_data):
         """Checks if a package originates from Aurora.
@@ -208,10 +239,13 @@ class PackageTransformer(object):
         Returns:
             package_data (dict): Updated package data
         """
-        # TODO fetch data from Archivematica
-        # Create AM client, infer use_statement and construct storage_uri
-        data = {"storage_uri": package_data['storage_uri'],
-                "use_statement": package_data['use_statement']}
+        self.archivematica_client.package_uuid = package_data['identifiers']['archivematica_uuid']
+        archivematica_data = self.archivematica_client.get_package_details()
+        if isinstance(archivematica_data, int):
+            raise Exception(errors.error_lookup(archivematica_data))
+
+        data = {"storage_uri": archivematica_data['resource_uri'],
+                "use_statement": 'master' if archivematica_data['package_type'].lower() == 'aip' else 'service_edited'}  # TODO confirm these values
         transformed = get_transformed_object(data, SourceArchivematicaPackage, SourceArchivematicaPackageToDigitalObject)
         archival_object = self.aspace_client.retrieve(
             package_data['identifiers']['archivesspace_archival_object'])
@@ -334,33 +368,15 @@ class PackageTransformer(object):
 
 
 if __name__ == "__main__":
+    environment = getenv('ENV')
     package_id = getenv("PACKAGE_ID")
     sns_topic = getenv("AWS_SNS_TOPIC")
     sns_role_arn = getenv("AWS_SNS_ROLE_ARN")
-    zodiac_baseurl = getenv("ZODIAC_BASEURL")
-    aurora_baseurl = getenv("AURORA_BASEURL")
-    aurora_oauth_client_baseurl = getenv("AURORA_OAUTH_CLIENT_BASEURL")
-    aurora_oauth_client_id = getenv("AURORA_OAUTH_CLIENT_ID")
-    aurora_oauth_client_secret = getenv("AURORA_OAUTH_CLIENT_SECRET")
-    aurora_accession_started_status = int(getenv("AURORA_ACCESSION_STARTED_STATUS"))
-    aurora_package_complete_status = int(getenv("AURORA_PACKAGE_COMPLETE_STATUS"))
-    as_baseurl = getenv("AS_BASEURL")
-    as_username = getenv("AS_USERNAME")
-    as_password = getenv("AS_PASSWORD")
-    as_repo_id = getenv("AS_REPO_ID")
+    ssm_role_arn = getenv("AWS_SSM_ROLE_ARN")
     PackageTransformer(
+        environment,
         package_id,
         sns_topic,
         sns_role_arn,
-        zodiac_baseurl,
-        aurora_baseurl,
-        aurora_oauth_client_baseurl,
-        aurora_oauth_client_id,
-        aurora_oauth_client_secret,
-        aurora_accession_started_status,
-        aurora_package_complete_status,
-        as_baseurl,
-        as_username,
-        as_password,
-        as_repo_id
+        ssm_role_arn,
     ).run()

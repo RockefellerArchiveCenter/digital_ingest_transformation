@@ -25,38 +25,75 @@ def json_from_fixture(fixture_name):
 class TransformInitTests(TestCase):
 
     def setUp(self):
-        self.args = ['package_id', 'sns_topic', 'sns_role', 'zodiac_baseurl', 'aurora_baseurl', 'aurora_oauth_client_baseurl',
-                     'aurora_oauth_client_id', 'aurora_oauth_client_secret', 30, 90, 'as_baseurl', 'as_username', 'as_password', 'as_repo_id']
+        self.args = ['dev', 'package_id', 'sns_topic', 'sns_role', 'ssm_role']
 
+    @patch('src.transform.PackageTransformer.get_config')
     @patch('src.clients.ZodiacClient.__init__')
     @patch('src.clients.ArchivesSpaceClient.__init__')
     @patch('src.clients.AuroraClient.__init__')
-    def test_init(self, mock_aurora, mock_as, mock_zodiac):
+    @patch('amclient.AMClient.__init__')
+    def test_init(self, mock_am, mock_aurora, mock_as, mock_zodiac, mock_config):
         """Asserts data attributes are set and clients instantiated as expected."""
+        mock_am.return_value = None
         mock_aurora.return_value = None
         mock_as.return_value = None
         mock_zodiac.return_value = None
+        am_api_key = 'am_api_key'
+        am_user_name = 'am_user_name'
+        am_url = 'am_url'
+        zodiac_baseurl = 'zodiac_baseurl'
+        aurora_baseurl = 'aurora_baseurl'
+        aurora_oauth_client_baseurl = 'aurora_oauth_client_baseurl'
+        aurora_oauth_client_id = 'aurora_oauth_client_id'
+        aurora_oauth_client_secret = 'aurora_oauth_client_secret'
+        aurora_accession_started_status = 30
+        aurora_package_complete_status = 90
+        as_baseurl = 'as_baseurl'
+        as_username = 'as_username'
+        as_password = 'as_password'
+        as_repo_id = 2
+        mock_config.return_value = {
+            'ARCHIVEMATICA_SS_API_KEY': am_api_key,
+            'ARCHIVEMATICA_SS_USER_NAME': am_user_name,
+            'ARCHIVEMATICA_SS_URL': am_url,
+            'ZODIAC_BASEURL': zodiac_baseurl,
+            'AS_BASEURL': as_baseurl,
+            'AS_USERNAME': as_username,
+            'AS_PASSWORD': as_password,
+            'AS_REPO_ID': as_repo_id,
+            'AURORA_BASEURL': aurora_baseurl,
+            'AURORA_OAUTH_CLIENT_BASEURL': aurora_oauth_client_baseurl,
+            'AURORA_OAUTH_CLIENT_ID': aurora_oauth_client_id,
+            'AURORA_OAUTH_CLIENT_SECRET': aurora_oauth_client_secret,
+            'AURORA_ACCESSION_STARTED_STATUS': aurora_accession_started_status,
+            'AURORA_PACKAGE_COMPLETE_STATUS': aurora_package_complete_status
+        }
 
         transformer = PackageTransformer(*self.args)
 
         self.assertEqual(transformer.service_name, 'aquarius')
-        self.assertEqual(transformer.package_id, self.args[0])
-        mock_aurora.assert_called_once_with(self.args[4], self.args[5], self.args[6], self.args[7])
-        mock_as.assert_called_once_with(self.args[10], self.args[11], self.args[12], self.args[13])
-        mock_zodiac.assert_called_once_with(self.args[3])
+        self.assertEqual(transformer.package_id, self.args[1])
+        self.assertEqual(transformer.sns_topic, self.args[2])
+        self.assertEqual(transformer.sns_role_arn, self.args[3])
+        self.assertEqual(transformer.ssm_role_arn, self.args[4])
+        mock_am.assert_called_once_with(ss_api_key=am_api_key, ss_user_name=am_user_name, ss_url=am_url)
+        mock_aurora.assert_called_once_with(aurora_baseurl, aurora_oauth_client_baseurl, aurora_oauth_client_id, aurora_oauth_client_secret)
+        mock_as.assert_called_once_with(as_baseurl, as_username, as_password, as_repo_id)
+        mock_zodiac.assert_called_once_with(zodiac_baseurl)
 
 
 class TransformMethodTest(TestCase):
 
     def setUp(self):
         self.package_id = "package_id"
-        self.args = [self.package_id, 'sns_topic', 'sns_role', 'zodiac_baseurl', 'aurora_baseurl', 'aurora_oauth_client_baseurl',
-                     'aurora_oauth_client_id', 'aurora_oauth_client_secret', 30, 90, 'as_baseurl', 'as_username', 'as_password', 'as_repo_id']
+        self.args = ['dev', self.package_id, 'sns_topic', 'sns_role', 'ssm_role']
         with patch('src.clients.ArchivesSpaceClient.__init__') as as_init:
             as_init.return_value = None
             with patch('src.clients.AuroraClient.__init__') as aurora_init:
                 aurora_init.return_value = None
-                self.transformer = PackageTransformer(*self.args)
+                with patch('src.transform.PackageTransformer.get_config') as mock_config:
+                    mock_config.return_value = json_from_fixture('config/complete.json')
+                    self.transformer = PackageTransformer(*self.args)
 
     @patch('src.clients.ZodiacClient.get')
     @patch('src.clients.AuroraClient.get')
@@ -212,10 +249,11 @@ class TransformMethodTest(TestCase):
         mock_create.assert_called_once_with(transformed_data, "component")
         mock_update_aurora.assert_called_once_with(output['url'], output)
 
+    @patch('amclient.AMClient.get_package_details')
     @patch('src.clients.ArchivesSpaceClient.create')
     @patch('src.clients.ArchivesSpaceClient.retrieve')
     @patch('src.transform.PackageTransformer.update_archival_object')
-    def test_create_digital_object(self, mock_update_ao, mock_retrieve, mock_create):
+    def test_create_digital_object(self, mock_update_ao, mock_retrieve, mock_create, mock_am_data):
         package_data = json_from_fixture('source/package--ao_created.json')
         package_data_digitization = json_from_fixture('source/package--ao_created--digitization.json')
         transformed_data = json_from_fixture('transformed/digital_object.json')
@@ -226,6 +264,7 @@ class TransformMethodTest(TestCase):
         do_uri = "/repositories/2/digital_objects/3"
         mock_create.return_value = {"uri": do_uri}
         mock_retrieve.return_value = as_archival_object
+        mock_am_data.return_value = {"resource_uri": "/aips/0a9c6171-a18d-4ff6-b9e7-bef01aaded10", "package_type": "aip"}
 
         """Package originating in Aurora"""
         output = self.transformer.create_digital_object(package_data)
