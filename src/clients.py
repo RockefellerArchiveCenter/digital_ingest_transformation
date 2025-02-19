@@ -132,13 +132,13 @@ class AuroraClient:
     def strip_url(self, raw_url):
         """Strips the hostname off the URL so that the configured hostname is used."""
         identifier = raw_url.rstrip("/").split("/")[-1]
-        prefix = raw_url.rstrip("/").split("/")[-2]
-        return f"/{prefix.lstrip('/')}/{identifier.lstrip('/')}/"
+        path = raw_url.rstrip("/").split("/")[-2]
+        return f"/{path}/{identifier}/"
 
     def update(self, raw_url, data, **kwargs):
         """Sends an HTTP POST request."""
         url = self.strip_url(raw_url)
-        resp = self.client.post(url, data=json.dumps(data), headers={"Content-Type": "application/json"}, **kwargs)
+        resp = self.client.put(url, data=json.dumps(data), headers={"Content-Type": "application/json"}, **kwargs)
         if resp.status_code == 200:
             return resp.json()
         else:

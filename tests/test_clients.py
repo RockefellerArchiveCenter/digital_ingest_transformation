@@ -196,21 +196,21 @@ class AuroraClientTests(TestCase):
         output = self.client.strip_url(input)
         self.assertEqual(output, expected)
 
-    @patch('electronbonder.client.ElectronBond.post')
-    def test_update(self, mock_patch):
+    @patch('electronbonder.client.ElectronBond.put')
+    def test_update(self, mock_put):
         """Asserts URL construction and exception handling."""
         data = {"foo": "bar"}
-        mock_patch.return_value = MockResponse(data, 200)
+        mock_put.return_value = MockResponse(data, 200)
 
         output = self.client.update("https://example.org/accessions/1", data)
         self.assertEqual(output, data)
-        mock_patch.assert_called_once_with(
+        mock_put.assert_called_once_with(
             '/accessions/1/',
             data='{"foo": "bar"}',
             headers={'Content-Type': 'application/json'}
         )
 
-        mock_patch.return_value = MockResponse({}, 404, text="Not Found")
+        mock_put.return_value = MockResponse({}, 404, text="Not Found")
         with self.assertRaises(AuroraClientError) as err:
             self.client.update("https://example.org/accessions/1", data)
         self.assertEqual(str(err.exception), "Error sending request /accessions/1/ to Aurora: 404 Not Found")
