@@ -266,9 +266,12 @@ class SourcePackageToComponent(odin.Mapping):
     def title(self, value):
         return value.title
 
-    @odin.map_field(from_field="url", to_field="external_ids", to_list=True)
+    @odin.map_field(from_field="identifiers", to_field="external_ids", to_list=True)
     def url(self, value):
-        return [ArchivesSpaceExternalId(external_id=value, source="aurora")]
+        identifiers = [ArchivesSpaceExternalId(external_id=value['archivematica_uuid'], source="archivematica")]
+        if value.get('aurora_package'):
+            identifiers.append(ArchivesSpaceExternalId(external_id=value['aurora_package'], source="aurora"))
+        return identifiers
 
     @odin.map_field(from_field="metadata", to_field="language")
     def language(self, value):

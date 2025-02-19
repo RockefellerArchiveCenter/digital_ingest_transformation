@@ -223,9 +223,11 @@ class PackageTransformer(object):
             to_transform["rights_statements"] = handle_open_dates(package_data.get("rights_statements", []))
             transformed = get_transformed_object(to_transform, SourcePackage, SourcePackageToComponent)
             as_ao_uri = self.aspace_client.create(transformed, "component").get("uri")
+
             """Update package data in Aurora."""
             package_data['archivesspace_identifier'] = as_ao_uri
-            self.aurora_client.update(package_data['url'], package_data)
+            self.aurora_client.update(package_data['identifiers']['aurora_package'], package_data)
+
         package_data.setdefault('identifiers', {}).update({'archivesspace_archival_object': as_ao_uri})
         logging.debug(f'Archival object {as_ao_uri} created for package {package_data["identifier"]}')
         return package_data

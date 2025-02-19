@@ -247,7 +247,7 @@ class TransformMethodTest(TestCase):
         self.assertEqual(output, returned_data)
         mock_linked_agents.assert_called_once_with(source_linked_agents)
         mock_create.assert_called_once_with(transformed_data, "component")
-        mock_update_aurora.assert_called_once_with(output['url'], output)
+        mock_update_aurora.assert_called_once_with(package_data['identifiers']['aurora_package'], output)
 
     @patch('amclient.AMClient.get_package_details')
     @patch('src.clients.ArchivesSpaceClient.create')

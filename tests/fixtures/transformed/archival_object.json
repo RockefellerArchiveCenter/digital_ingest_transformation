@@ -36,6 +36,11 @@
     ],
     "external_ids": [
         {
+            "external_id": "0a9c6171-a18d-4ff6-b9e7-bef01aaded10",
+            "source": "archivematica",
+            "$": "src.resources.archivesspace.ArchivesSpaceExternalId"
+        },
+        {
             "external_id": "https://aurora.dev.rockarch.org/api/transfers/1631/?format=json",
             "source": "aurora",
             "$": "src.resources.archivesspace.ArchivesSpaceExternalId"

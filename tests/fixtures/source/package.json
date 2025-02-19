@@ -1,5 +1,4 @@
 {
-    "url": "https://aurora.dev.rockarch.org/api/transfers/1631/?format=json",
     "identifier": "0a9c6171-a18d-4ff6-b9e7-bef01aaded10",
     "organization": "https://aurora.dev.rockarch.org/api/orgs/3/?format=json",
     "origin": "aurora",
@@ -145,5 +144,9 @@
     "archivesspace_parent_identifier": null,
     "aurora_accession_identifier": "https://aurora.dev.rockarch.org/api/accessions/21",
     "created_time": "2021-08-18T14:29:03.159961-04:00",
-    "modified_time": "2022-11-10T15:16:18.243515-05:00"
+    "modified_time": "2022-11-10T15:16:18.243515-05:00",
+    "identifiers": {
+        "aurora_package": "https://aurora.dev.rockarch.org/api/transfers/1631/?format=json",
+        "archivematica_uuid": "0a9c6171-a18d-4ff6-b9e7-bef01aaded10"
+    }
 }
