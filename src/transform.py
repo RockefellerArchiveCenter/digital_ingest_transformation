@@ -4,6 +4,7 @@ import traceback
 from os import getenv
 from time import time
 
+import shortuuid
 from amclient import AMClient, errors
 from odin.codecs import json_codec
 
@@ -16,8 +17,8 @@ from .mappings import (SourceAccessionToArchivesSpaceAccession,
                        SourcePackageToComponent,
                        SourceRightsStatementToArchivesSpaceRightsStatement,
                        map_agents)
-from .resources.source import (SourceAccession, SourceArchivematicaPackage,
-                               SourceCreator, SourcePackage,
+from .resources.source import (SourceAccession, SourceCreator,
+                               SourceDigitalObject, SourcePackage,
                                SourceRightsStatement)
 
 logging.basicConfig(
@@ -243,24 +244,42 @@ class PackageTransformer(object):
         """
         self.archivematica_client.package_uuid = package_data['identifiers']['archivematica_uuid']
         archivematica_data = self.archivematica_client.get_package_details()
+        archival_object = self.aspace_client.retrieve(
+            package_data['identifiers']['archivesspace_archival_object'])
         if isinstance(archivematica_data, int):
             raise Exception(errors.error_lookup(archivematica_data))
 
-        data = {"storage_uri": archivematica_data['resource_uri'],
-                "use_statement": 'master' if archivematica_data['package_type'].lower() == 'aip' else 'service_edited'}  # TODO confirm these values
-        transformed = get_transformed_object(data, SourceArchivematicaPackage, SourceArchivematicaPackageToDigitalObject)
-        archival_object = self.aspace_client.retrieve(
-            package_data['identifiers']['archivesspace_archival_object'])
-        transformed['title'] = archival_object['display_string']
+        data = {
+            "identifier": package_data['identifier'],
+            "title": archival_object['display_string'],
+            "publish": True if package_data['origin'] == 'digitization' else False,
+            "file_versions": [
+                {
+                    "file_uri": archivematica_data['resource_uri'],
+                    "use_statement": 'aip'
+                }
+            ]
+        }
         if package_data['origin'] == 'digitization':
-            transformed['publish'] = True
+            dimes_id = shortuuid.uuid(archival_object['uri'])
+            data['file_versions'] += [
+                {
+                    "file_uri": f"{self.config['IIIF_MANIFEST_BASEURL'].rstrip('/')}/{dimes_id}",
+                    "use_statement": 'iiif_manifest'
+                },
+                {
+                    "file_uri": f"{self.config['DOWNLOAD_BASEURL'].rstrip('/')}/{dimes_id}",
+                    "use_statement": 'download'
+                }
+            ]
+        transformed = get_transformed_object(data, SourceDigitalObject, SourceArchivematicaPackageToDigitalObject)
         do_uri = self.aspace_client.create(transformed, "digital object").get("uri")
 
         self.update_archival_object(archival_object, do_uri)
 
         digital_objects = package_data.get('identifiers', {}).get('digital_objects', [])
         digital_objects.append(do_uri)
-        package_data.setdefault('identifiers', {}).update({'digital_objects': digital_objects})  # TODO add Storage ID?
+        package_data.setdefault('identifiers', {}).update({'digital_objects': digital_objects})
         logging.debug(f'Digital object {do_uri} created for package {package_data["identifier"]}')
         return package_data
 

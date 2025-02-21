@@ -12,5 +12,7 @@
     "AURORA_OAUTH_CLIENT_ID": "aurora_oauth_client_id",
     "AURORA_OAUTH_CLIENT_SECRET": "aurora_oauth_client_secret",
     "AURORA_ACCESSION_STARTED_STATUS": 30,
-    "AURORA_PACKAGE_COMPLETE_STATUS": 90
+    "AURORA_PACKAGE_COMPLETE_STATUS": 90,
+    "IIIF_MANIFEST_BASEURL": "https://iiif.rockarch.org/manifests",
+    "DOWNLOAD_BASEURL": "https://iiif.rockarch.org/pdfs"
 }

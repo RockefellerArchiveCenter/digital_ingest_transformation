@@ -20,10 +20,10 @@ from .resources.archivesspace import (ArchivesSpaceAccession,
                                       ArchivesSpaceRightsStatement,
                                       ArchivesSpaceRightsStatementAct,
                                       ArchivesSpaceSubnote)
-from .resources.source import (SourceAccession, SourceArchivematicaPackage,
-                               SourceCreator, SourceLinkedCreator,
-                               SourcePackage, SourceRightsStatement,
-                               SourceRightsStatementAct)
+from .resources.source import (SourceAccession, SourceCreator,
+                               SourceDigitalObject, SourceFileVersion,
+                               SourceLinkedCreator, SourcePackage,
+                               SourceRightsStatement, SourceRightsStatementAct)
 
 
 def map_dates(date_start, date_end):
@@ -312,16 +312,22 @@ class SourcePackageToComponent(odin.Mapping):
 
 
 class SourceArchivematicaPackageToDigitalObject(odin.Mapping):
-    from_obj = SourceArchivematicaPackage
+    from_obj = SourceDigitalObject
     to_obj = ArchivesSpaceDigitalObject
 
-    def extract_id(self, uri):
-        return uri.rstrip("/").split("/")[-1]
+    mappings = (
+        ("identifier", None, "digital_object_id"),
+        ("title", None, "title"),
+        ("publish", None, "publish"),
+        ("file_versions", None, "file_versions"),
+    )
 
-    @odin.map_field(from_field="storage_uri", to_field="digital_object_id")
-    def digital_object_id(self, value):
-        return self.extract_id(value)
 
-    @odin.map_field(from_field=("storage_uri", "use_statement"), to_field="file_versions", to_list=True)
-    def file_versions(self, storage_uri, use_statement):
-        return [ArchivesSpaceFileVersion(file_uri=storage_uri, use_statement=use_statement)]
+class SourceFileVersionToArchivesSpaceFileVersion(odin.Mapping):
+    from_obj = SourceFileVersion
+    to_obj = ArchivesSpaceFileVersion
+
+    mappings = (
+        ("file_uri", None, "file_uri"),
+        ("use_statement", None, "use_statement"),
+    )

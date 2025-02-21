@@ -83,6 +83,13 @@ class SourcePackage(odin.Resource):
     identifiers = odin.DictField()
 
 
-class SourceArchivematicaPackage(odin.Resource):
-    storage_uri = odin.StringField()
+class SourceFileVersion(odin.Resource):
+    file_uri = odin.StringField()
     use_statement = odin.StringField()
+
+
+class SourceDigitalObject(odin.Resource):
+    identifier = odin.StringField()
+    title = odin.StringField()
+    publish = odin.BooleanField()
+    file_versions = odin.ArrayOf(SourceFileVersion)

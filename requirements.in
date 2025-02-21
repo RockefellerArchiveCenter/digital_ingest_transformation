@@ -5,3 +5,4 @@ boto3~=1.36
 electronbonder~=2.2
 odin~=2.10
 requests~=2.32
+shortuuid~=1.0
