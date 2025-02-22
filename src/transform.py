@@ -277,9 +277,9 @@ class PackageTransformer(object):
 
         self.update_archival_object(archival_object, do_uri)
 
-        digital_objects = package_data.get('identifiers', {}).get('digital_objects', [])
+        digital_objects = package_data.get('identifiers', {}).get('archivesspace_digital_objects', [])
         digital_objects.append(do_uri)
-        package_data.setdefault('identifiers', {}).update({'digital_objects': digital_objects})
+        package_data.setdefault('identifiers', {}).update({'archivesspace_digital_objects': digital_objects})
         logging.debug(f'Digital object {do_uri} created for package {package_data["identifier"]}')
         return package_data
 
