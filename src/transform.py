@@ -154,7 +154,8 @@ class PackageTransformer(object):
             as_accession_uri = source_accession_data['archivesspace_identifier']
         else:
             to_transform = source_accession_data.copy()
-            to_transform["accession_number"] = self.aspace_client.next_accession_number()
+            accession_number = self.aspace_client.next_accession_number()
+            to_transform["accession_number"] = accession_number
             to_transform["linked_agents"] = self.get_linked_agents(
                 to_transform["creators"] + [{"name": to_transform["organization"], "type": "organization"}])
             to_transform["rights_statements"] = handle_open_dates(
@@ -165,6 +166,7 @@ class PackageTransformer(object):
             """Update accession data in Aurora."""
             source_accession_data['archivesspace_identifier'] = as_accession_uri
             source_accession_data['process_status'] = self.aurora_accession_started_status
+            source_accession_data['accession_number'] = accession_number
             self.aurora_client.update(source_accession_data['url'], source_accession_data)
 
         identifiers = {
