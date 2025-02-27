@@ -172,3 +172,13 @@ class ZodiacClient(object):
             return resp.json()
         except HTTPError:
             raise ZodiacClientError(f"Error fetching url {url}: {resp.status_code} {resp.text}")
+
+    def put(self, uri, data):
+        """Makes an HTTP PUT request"""
+        url = f'{self.baseurl}/{uri.lstrip("/").rstrip("/")}/'
+        try:
+            resp = self.session.put(url, data=data)
+            resp.raise_for_status()
+            return resp.json()
+        except HTTPError:
+            raise ZodiacClientError(f"Error updating data at url {url}: {resp.status_code} {resp.text}")

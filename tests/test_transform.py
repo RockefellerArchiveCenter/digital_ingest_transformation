@@ -102,10 +102,10 @@ class TransformMethodTest(TestCase):
     @patch('src.transform.PackageTransformer.create_archival_object')
     @patch('src.transform.PackageTransformer.create_digital_object')
     @patch('src.transform.PackageTransformer.update_archival_object')
-    @patch('src.transform.PackageTransformer.update_aurora_package')
+    @patch('src.transform.PackageTransformer.update_source_package')
     @patch('src.transform.PackageTransformer.deliver_success_notification')
     @patch('src.transform.PackageTransformer.deliver_failure_notification')
-    def test_run(self, mock_failure_message, mock_success_message, mock_update_aurora, mock_update_ao,
+    def test_run(self, mock_failure_message, mock_success_message, mock_update_source, mock_update_ao,
                  mock_do, mock_ao, mock_group, mock_accession, mock_aurora_get, mock_package_data):
         """Asserts logic for digitization package."""
         accession_uri = "https://aurora.dev.rockarch.org/api/accessions/21"
@@ -123,12 +123,13 @@ class TransformMethodTest(TestCase):
         mock_package_data.assert_called_once_with(f'packages/{self.transformer.package_id}')
         mock_do.assert_called_once_with(package_data)
         mock_update_ao.assert_called_once_with(do_created)
+        mock_update_source.assert_called_once_with(do_created)
         mock_success_message.assert_called_once_with(do_created)
 
-        for m in [mock_aurora_get, mock_accession, mock_group, mock_ao, mock_update_aurora, mock_failure_message]:
+        for m in [mock_aurora_get, mock_accession, mock_group, mock_ao, mock_failure_message]:
             m.assert_not_called()
 
-        for m in [mock_do, mock_update_ao, mock_success_message, mock_package_data]:
+        for m in [mock_do, mock_update_ao, mock_update_source, mock_success_message, mock_package_data]:
             m.reset_mock()
 
         """Asserts logic for Aurora package."""
@@ -151,7 +152,7 @@ class TransformMethodTest(TestCase):
         mock_package_data.assert_called_once_with(f'packages/{self.transformer.package_id}')
         mock_do.assert_called_once_with(ao_created)
         mock_update_ao.assert_called_once_with(do_created)
-        mock_update_aurora.assert_called_once_with(do_created)
+        mock_update_source.assert_called_once_with(do_created)
         mock_success_message.assert_called_once_with(do_created)
         mock_aurora_get.assert_has_calls([
             call(aurora_package_uri),
@@ -307,7 +308,8 @@ class TransformMethodTest(TestCase):
         mock_update.assert_called_once_with(package_data['identifiers']['archivesspace_archival_object'], transformed_as_archival_object_digitization)
 
     @patch('src.clients.AuroraClient.update')
-    def test_update_aurora_package(self, mock_update):
+    @patch('src.clients.ZodiacClient.put')
+    def test_update_source_package(self, mock_zodiac_update, mock_aurora_update):
         """Asserts attributes are set correctly."""
         package_url = "https://aurora.rockarch.org/api/transfers/1"
         initial_data = {"identifiers": {"archivesspace_group": "bar", "aurora_package": package_url}}
@@ -315,8 +317,20 @@ class TransformMethodTest(TestCase):
         expected_data['archivesspace_parent_identifier'] = 'bar'
         expected_data['process_status'] = 90
 
-        self.transformer.update_aurora_package(initial_data)
-        mock_update.assert_called_once_with(package_url, expected_data)
+        """Digitization package"""
+        self.transformer.update_source_package(initial_data)
+        mock_aurora_update.assert_not_called()
+        mock_zodiac_update.assert_called_once_with(f'/packages/{self.package_id}', initial_data)
+        mock_zodiac_update.reset_mock()
+
+        """Aurora package"""
+        initial_data = {
+            "origin": "aurora",
+            "identifiers": {"archivesspace_group": "bar", "aurora_package": package_url}}
+        expected_data['origin'] = 'aurora'
+        self.transformer.update_source_package(initial_data)
+        mock_aurora_update.assert_called_once_with(package_url, expected_data)
+        mock_zodiac_update.assert_called_once_with(f'/packages/{self.package_id}', initial_data)
 
     @patch('src.clients.ArchivesSpaceClient.get_or_create')
     def test_get_linked_agents(self, mock_get_or_create):

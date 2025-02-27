@@ -72,8 +72,7 @@ class PackageTransformer(object):
                 package_data = ao_created
             do_created = self.create_digital_object(package_data)
             self.update_archival_object(do_created)
-            if self.is_aurora_package(do_created):
-                self.update_aurora_package(do_created)
+            self.update_source_package(do_created)
             self.deliver_success_notification(do_created)
             logging.info(f'Data from package {self.package_id} transformed and saved.')
         except Exception as err:
@@ -199,9 +198,11 @@ class PackageTransformer(object):
             to_transform["rights_statements"] = handle_open_dates(package_data.get("rights_statements", []))
             transformed = get_transformed_object(to_transform, SourceAccession, SourceAccessionToGroupingComponent)
             as_group_uri = self.aspace_client.create(transformed, "component").get("uri")
+
             """Update accession data in Aurora"""
             accession_data['archivesspace_group_identifier'] = as_group_uri
             self.aurora_client.update(accession_data['url'], accession_data)
+
         package_data.setdefault('identifiers', {}).update({'archivesspace_group': as_group_uri})
         logging.debug(f'Grouping component {as_group_uri} created for package {package_data["identifier"]}')
         return package_data
@@ -278,6 +279,7 @@ class PackageTransformer(object):
         transformed = get_transformed_object(data, SourceDigitalObject, SourceArchivematicaPackageToDigitalObject)
         do_uri = self.aspace_client.create(transformed, "digital object").get("uri")
 
+        """Update archival object in ArchivesSpace"""
         self.update_archival_object(archival_object, do_uri)
 
         digital_objects = package_data.get('identifiers', {}).get('archivesspace_digital_objects', [])
@@ -313,7 +315,7 @@ class PackageTransformer(object):
         self.aspace_client.update(package_data['identifiers']['archivesspace_archival_object'], archival_object)
         logging.debug(f'Archival object {package_data["identifiers"]["archivesspace_archival_object"]} updated for package {package_data["identifier"]}')
 
-    def update_aurora_package(self, package_data):
+    def update_source_package(self, package_data):
         """Updates identifiers and process status and sends data to Aurora.
 
         The `archivesspace_archival_object` identifier has already been added in the `create_archival_object` method.
@@ -321,9 +323,11 @@ class PackageTransformer(object):
         Args:
             package_data (dict): updated package data
         """
-        package_data['archivesspace_parent_identifier'] = package_data['identifiers']['archivesspace_group']
-        package_data['process_status'] = self.aurora_package_complete_status
-        self.aurora_client.update(package_data['identifiers']['aurora_package'], package_data)
+        if self.is_aurora_package(package_data):
+            package_data['archivesspace_parent_identifier'] = package_data['identifiers']['archivesspace_group']
+            package_data['process_status'] = self.aurora_package_complete_status
+            self.aurora_client.update(package_data['identifiers']['aurora_package'], package_data)
+        self.zodiac_client.put(f'/packages/{self.package_id}', package_data)
 
     def deliver_success_notification(self, package_data):
         """Send SNS message about successful job.
