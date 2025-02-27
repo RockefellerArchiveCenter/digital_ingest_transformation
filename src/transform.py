@@ -64,8 +64,9 @@ class PackageTransformer(object):
         try:
             package_data = self.zodiac_client.get(f'packages/{self.package_id}')
             if self.is_aurora_package(package_data):
+                aurora_package_data = self.aurora_client.get(package_data['identifiers']['aurora_package'])
                 aurora_accession_data = self.aurora_client.get(package_data['aurora_accession_identifier'])
-                accession_created = self.create_accession(package_data, aurora_accession_data)
+                accession_created = self.create_accession(aurora_package_data, aurora_accession_data)
                 group_created = self.create_archival_objects_group(accession_created, aurora_accession_data)
                 ao_created = self.create_archival_object(group_created)
                 package_data = ao_created

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 from src.helpers import handle_open_dates
 from src.transform import PackageTransformer
@@ -106,9 +106,10 @@ class TransformMethodTest(TestCase):
     @patch('src.transform.PackageTransformer.deliver_success_notification')
     @patch('src.transform.PackageTransformer.deliver_failure_notification')
     def test_run(self, mock_failure_message, mock_success_message, mock_update_aurora, mock_update_ao,
-                 mock_do, mock_ao, mock_group, mock_accession, mock_accession_data, mock_package_data):
+                 mock_do, mock_ao, mock_group, mock_accession, mock_aurora_get, mock_package_data):
         """Asserts logic for digitization package."""
         accession_uri = "https://aurora.dev.rockarch.org/api/accessions/21"
+        aurora_package_uri = "https://aurora.dev.rockarch.org/api/transfers/1"
         package_data = {
             "type": "package",
             "origin": "digitization",
@@ -124,7 +125,7 @@ class TransformMethodTest(TestCase):
         mock_update_ao.assert_called_once_with(do_created)
         mock_success_message.assert_called_once_with(do_created)
 
-        for m in [mock_accession_data, mock_accession, mock_group, mock_ao, mock_update_aurora, mock_failure_message]:
+        for m in [mock_aurora_get, mock_accession, mock_group, mock_ao, mock_update_aurora, mock_failure_message]:
             m.assert_not_called()
 
         for m in [mock_do, mock_update_ao, mock_success_message, mock_package_data]:
@@ -133,12 +134,13 @@ class TransformMethodTest(TestCase):
         """Asserts logic for Aurora package."""
         package_data["origin"] = "aurora"
         package_data["accession"] = accession_uri
+        package_data["identifiers"] = {"aurora_package": aurora_package_uri}
         accession_data = {"type": "accession"}
         accession_created = {"created": "accession"}
         group_created = {"created": "group"}
         ao_created = {"created": "ao"}
         do_created = {"created": "do", "url": "foo", "origin": "aurora"}
-        mock_accession_data.return_value = accession_data
+        mock_aurora_get.side_effect = [package_data, accession_data]
         mock_accession.return_value = accession_created
         mock_group.return_value = group_created
         mock_ao.return_value = ao_created
@@ -151,7 +153,10 @@ class TransformMethodTest(TestCase):
         mock_update_ao.assert_called_once_with(do_created)
         mock_update_aurora.assert_called_once_with(do_created)
         mock_success_message.assert_called_once_with(do_created)
-        mock_accession_data.assert_called_once_with(accession_uri)
+        mock_aurora_get.assert_has_calls([
+            call(aurora_package_uri),
+            call(accession_uri),
+        ])
         mock_accession.assert_called_once_with(package_data, accession_data)
         mock_group.assert_called_once_with(accession_created, accession_data)
         mock_ao.assert_called_once_with(group_created)
