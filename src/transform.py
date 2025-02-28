@@ -35,7 +35,7 @@ class PackageTransformer(object):
                  sns_topic,
                  sns_role_arn,
                  ssm_role_arn):
-        self.service_name = 'aquarius'
+        self.service_name = 'digital_ingest_transformation'
         self.package_id = package_id
         self.sns_topic = sns_topic
         self.sns_role_arn = sns_role_arn

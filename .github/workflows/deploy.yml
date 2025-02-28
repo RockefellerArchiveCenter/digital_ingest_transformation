@@ -14,7 +14,7 @@ jobs:
       name: ${{ github.ref_name }}
 
     env:
-      APPLICATION_NAME: aquarius
+      APPLICATION_NAME: digital_ingest_transformation
 
     services:
       docker:

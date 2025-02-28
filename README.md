@@ -1,18 +1,17 @@
-# aquarius
+# digital_ingest_transformation
 
 A microservice to transform and deliver Accessions, Archival Objects and Digital Objects to ArchivesSpace.
 
-aquarius is part of [Project Electron](https://github.com/RockefellerArchiveCenter/project_electron), an initiative to build sustainable, open and user-centered infrastructure for the archival management of digital records at the [Rockefeller Archive Center](http://rockarch.org/).
 
 ## Getting Started
 
 If you have [git](https://git-scm.com/) and [Docker](https://www.docker.com/community-edition) installed, using this repository is as simple as:
 
 ```
-git clone https://github.com/RockefellerArchiveCenter/aquarius.git
-cd aquarius
-docker build -t aquarius .
-docker run aquarius
+git clone https://github.com/RockefellerArchiveCenter/digital_ingest_transformation.git
+cd digital_ingest_transformation
+docker build -t digital_ingest_transformation .
+docker run digital_ingest_transformation
 ```
 
 ## Usage

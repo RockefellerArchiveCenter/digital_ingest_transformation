@@ -71,7 +71,7 @@ class TransformInitTests(TestCase):
 
         transformer = PackageTransformer(*self.args)
 
-        self.assertEqual(transformer.service_name, 'aquarius')
+        self.assertEqual(transformer.service_name, 'digital_ingest_transformation')
         self.assertEqual(transformer.package_id, self.args[1])
         self.assertEqual(transformer.sns_topic, self.args[2])
         self.assertEqual(transformer.sns_role_arn, self.args[3])
