@@ -184,7 +184,7 @@ class TransformMethodTest(TestCase):
         linked_agents = json_from_fixture('transformed/linked_agents.json')
         source_linked_agents = json_from_fixture('source/linked_agents.json')
         transformed_data = json_from_fixture('transformed/accession.json')
-        returned_data = json_from_fixture('transformed/package--accession_created.json')
+        returned_data = json_from_fixture('updated/create_accession.json')
         mock_linked_agents.return_value = linked_agents
         mock_create.return_value = {'uri': '/repositories/2/accessions/4172'}
 
@@ -212,7 +212,7 @@ class TransformMethodTest(TestCase):
         linked_agents = json_from_fixture('transformed/linked_agents.json')
         source_linked_agents = json_from_fixture('source/linked_agents.json')
         transformed_data = json_from_fixture('transformed/group.json')
-        returned_data = json_from_fixture('transformed/package--group_created.json')
+        returned_data = json_from_fixture('updated/create_archival_objects_group.json')
         mock_linked_agents.return_value = linked_agents
         mock_create.return_value = {'uri': '/repositories/2/archival_objects/4753'}
 
@@ -238,7 +238,7 @@ class TransformMethodTest(TestCase):
         linked_agents = json_from_fixture('transformed/linked_agents.json')
         source_linked_agents = json_from_fixture('source/linked_agents.json')
         transformed_data = json_from_fixture('transformed/archival_object.json')
-        returned_data = json_from_fixture('transformed/package--ao_created.json')
+        returned_data = json_from_fixture('updated/create_archival_object.json')
         mock_linked_agents.return_value = linked_agents
         mock_create.return_value = {'uri': '/repositories/2/archival_objects/2153'}
 
@@ -264,8 +264,8 @@ class TransformMethodTest(TestCase):
         package_data_digitization = json_from_fixture('source/package--ao_created--digitization.json')
         transformed_data = json_from_fixture('transformed/digital_object.json')
         transformed_data_digitization = json_from_fixture('transformed/digital_object--digitization.json')
-        returned_data = json_from_fixture('transformed/package--do_created.json')
-        returned_data_digitization = json_from_fixture('transformed/package--do_created--digitization.json')
+        returned_data = json_from_fixture('updated/create_digital_object.json')
+        returned_data_digitization = json_from_fixture('updated/create_digital_object--digitization.json')
         as_archival_object = json_from_fixture('source/as_archival_object.json')
         do_uri = "/repositories/2/digital_objects/3"
         mock_create.return_value = {"uri": do_uri}
@@ -294,8 +294,8 @@ class TransformMethodTest(TestCase):
         package_data_digitization = json_from_fixture('source/package--do_created--digitization.json')
         as_component = json_from_fixture('source/as_archival_object.json')
         as_component_digitization = json_from_fixture('source/as_archival_object--digitization.json')
-        transformed_as_archival_object = json_from_fixture('transformed/as_archival_object--with_do.json')
-        transformed_as_archival_object_digitization = json_from_fixture('transformed/as_archival_object--with_do--digitization.json')
+        transformed_as_archival_object = json_from_fixture('transformed/archival_object--with_do.json')
+        transformed_as_archival_object_digitization = json_from_fixture('transformed/archival_object--with_do--digitization.json')
         do_uri = "/repositories/2/digital_objects/3"
 
         """Package originating in Aurora"""
