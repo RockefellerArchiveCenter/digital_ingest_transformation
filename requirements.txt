@@ -8,17 +8,17 @@ amclient==1.4.0
     # via -r requirements.in
 archivessnake==0.10.1
     # via -r requirements.in
-attrs==25.1.0
+attrs==25.3.0
     # via archivessnake
 aws-assume-role-lib==2.10.0
     # via -r requirements.in
 boltons==25.0.0
     # via archivessnake
-boto3==1.36.22
+boto3==1.37.24
     # via
     #   -r requirements.in
     #   aws-assume-role-lib
-botocore==1.36.22
+botocore==1.37.24
     # via
     #   boto3
     #   s3transfer
@@ -44,7 +44,7 @@ python-dateutil==2.9.0.post0
     # via botocore
 pyyaml==6.0.2
     # via archivessnake
-rapidfuzz==3.12.1
+rapidfuzz==3.12.2
     # via archivessnake
 requests==2.32.3
     # via
@@ -55,7 +55,7 @@ requests==2.32.3
     #   requests-oauthlib
 requests-oauthlib==2.0.0
     # via electronbonder
-s3transfer==0.11.2
+s3transfer==0.11.4
     # via boto3
 shortuuid==1.0.13
     # via -r requirements.in
@@ -63,7 +63,7 @@ six==1.17.0
     # via
     #   electronbonder
     #   python-dateutil
-structlog==25.1.0
+structlog==25.2.0
     # via archivessnake
 urllib3==2.3.0
     # via
