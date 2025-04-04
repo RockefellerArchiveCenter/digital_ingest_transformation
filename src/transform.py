@@ -62,6 +62,7 @@ class PackageTransformer(object):
     def run(self):
         """Main class method which calls all other methods."""
         try:
+            self.deliver_start_notification()
             package_data = self.zodiac_client.get(f'packages/{self.package_id}')
             if self.is_aurora_package(package_data):
                 aurora_package_data = self.aurora_client.get(package_data['identifiers']['aurora_package'])
@@ -328,6 +329,27 @@ class PackageTransformer(object):
             package_data['process_status'] = self.aurora_package_complete_status
             self.aurora_client.update(package_data['identifiers']['aurora_package'], package_data)
         self.zodiac_client.put(f'/packages/{self.package_id}', package_data)
+
+    def deliver_start_notification(self):
+        client = get_client_with_role('sns', self.sns_role_arn)
+        client.publish(
+            TopicArn=self.sns_topic,
+            Message=f'Transformation for {self.package_id} started.',
+            MessageAttributes={
+                'package_id': {
+                    'DataType': 'String',
+                    'StringValue': self.package_id,
+                },
+                'service': {
+                    'DataType': 'String',
+                    'StringValue': self.service_name,
+                },
+                'outcome': {
+                    'DataType': 'String',
+                    'StringValue': 'STARTED',
+                }
+            })
+        logging.debug('Start notification delivered.')
 
     def deliver_success_notification(self, package_data):
         """Send SNS message about successful job.
