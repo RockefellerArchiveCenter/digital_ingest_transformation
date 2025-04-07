@@ -10,4 +10,4 @@ RUN pip install -r test_requirements.txt
 COPY tests tests
 
 FROM base AS build
-CMD [ "python", "src/transform.py" ]
+CMD [ "python", "-m", "src.transform" ]
