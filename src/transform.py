@@ -10,16 +10,16 @@ from odin.codecs import json_codec
 
 from src.clients import ArchivesSpaceClient, AuroraClient, ZodiacClient
 from src.helpers import (get_client_with_role, get_transformed_object,
-                      handle_open_dates)
+                         handle_open_dates)
 from src.mappings import (SourceAccessionToArchivesSpaceAccession,
-                       SourceAccessionToGroupingComponent,
-                       SourceArchivematicaPackageToDigitalObject,
-                       SourcePackageToComponent,
-                       SourceRightsStatementToArchivesSpaceRightsStatement,
-                       map_agents)
+                          SourceAccessionToGroupingComponent,
+                          SourceArchivematicaPackageToDigitalObject,
+                          SourcePackageToComponent,
+                          SourceRightsStatementToArchivesSpaceRightsStatement,
+                          map_agents)
 from src.resources.source import (SourceAccession, SourceCreator,
-                               SourceDigitalObject, SourcePackage,
-                               SourceRightsStatement)
+                                  SourceDigitalObject, SourcePackage,
+                                  SourceRightsStatement)
 
 logging.basicConfig(
     level=int(getenv('LOGGING_LEVEL', logging.INFO)),
