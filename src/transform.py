@@ -347,6 +347,10 @@ class PackageTransformer(object):
                 'outcome': {
                     'DataType': 'String',
                     'StringValue': 'STARTED',
+                },
+                'message': {
+                    'DataType': 'String',
+                    'StringValue': f'Transformation for {self.package_id} started.',
                 }
             })
         logging.debug('Start notification delivered.')
@@ -360,7 +364,7 @@ class PackageTransformer(object):
         client = get_client_with_role('sns', self.sns_role_arn)
         client.publish(
             TopicArn=self.sns_topic,
-            Message=f'Package {self.package_id} successfully discovered.',
+            Message=json.dumps(package_data),
             MessageAttributes={
                 'package_id': {
                     'DataType': 'String',
@@ -374,9 +378,9 @@ class PackageTransformer(object):
                     'DataType': 'String',
                     'StringValue': 'SUCCESS',
                 },
-                'package_data': {
+                'message': {
                     'DataType': 'String',
-                    'StringValue': json.dumps(package_data),
+                    'StringValue': f'Package {self.package_id} successfully discovered.',
                 },
             })
         logging.debug('Success notification delivered.')
@@ -391,7 +395,7 @@ class PackageTransformer(object):
         tb = ''.join(traceback.format_exception(exception)[:-1])
         client.publish(
             TopicArn=self.sns_topic,
-            Message=f'Package {self.package_id} failed during discovery.',
+            Message=tb,
             MessageAttributes={
                 'package_id': {
                     'DataType': 'String',
@@ -408,10 +412,6 @@ class PackageTransformer(object):
                 'message': {
                     'DataType': 'String',
                     'StringValue': str(exception),
-                },
-                'traceback': {
-                    'DataType': 'String',
-                    'StringValue': tb,
                 }
             })
         logging.debug('Failure notification delivered.')
