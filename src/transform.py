@@ -77,6 +77,7 @@ class PackageTransformer(object):
             self.deliver_success_notification(do_created)
             logging.info(f'Data from package {self.package_id} transformed and saved.')
         except Exception as err:
+            logging.error(err)
             self.deliver_failure_notification(err)
 
     def get_config(self, environment):
@@ -172,7 +173,8 @@ class PackageTransformer(object):
             'archivesspace_accession': as_accession_uri,
             'archivesspace_resource': as_resource_uri
         }
-        package_data.setdefault('identifiers', {}).update(identifiers)
+        package_data.setdefault('identifiers', {})
+        package_data['identifiers'].update(identifiers)
         logging.debug(f'Accession {as_accession_uri} created for package {package_data["identifier"]}')
         return package_data
 
@@ -201,7 +203,8 @@ class PackageTransformer(object):
             accession_data['archivesspace_group_identifier'] = as_group_uri
             self.aurora_client.update(accession_data['url'], accession_data)
 
-        package_data.setdefault('identifiers', {}).update({'archivesspace_group': as_group_uri})
+        package_data.setdefault('identifiers', {})
+        package_data['identifiers'].update({'archivesspace_group': as_group_uri})
         logging.debug(f'Grouping component {as_group_uri} created for package {package_data["identifier"]}')
         return package_data
 
@@ -231,7 +234,8 @@ class PackageTransformer(object):
             package_data['archivesspace_identifier'] = as_ao_uri
             self.aurora_client.update(package_data['identifiers']['aurora_package'], package_data)
 
-        package_data.setdefault('identifiers', {}).update({'archivesspace_archival_object': as_ao_uri})
+        package_data.setdefault('identifiers', {})
+        package_data['identifiers'].update({'archivesspace_archival_object': as_ao_uri})
         logging.debug(f'Archival object {as_ao_uri} created for package {package_data["identifier"]}')
         return package_data
 
@@ -282,7 +286,8 @@ class PackageTransformer(object):
 
         digital_objects = package_data.get('identifiers', {}).get('archivesspace_digital_objects', [])
         digital_objects.append(do_uri)
-        package_data.setdefault('identifiers', {}).update({'archivesspace_digital_objects': digital_objects})
+        package_data.setdefault('identifiers', {})
+        package_data['identifiers'].update({'archivesspace_digital_objects': digital_objects})
         logging.debug(f'Digital object {do_uri} created for package {package_data["identifier"]}')
         return package_data
 
