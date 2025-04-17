@@ -77,6 +77,7 @@ class PackageTransformer(object):
             self.deliver_success_notification(do_created)
             logging.info(f'Data from package {self.package_id} transformed and saved.')
         except Exception as err:
+            logging.error(err)
             self.deliver_failure_notification(err)
 
     def get_config(self, environment):
