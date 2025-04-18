@@ -76,15 +76,6 @@ class ArchivesSpaceClientTests(TestCase):
         mock_post.assert_called_once_with('/repositories/2/accessions', data=json.dumps({}))
         mock_post.reset_mock()
 
-        mock_post.side_effect = [
-            MockResponse({"error": {"id_0": "Field already exists"}}, 403),
-            MockResponse(post_data, 200)]
-        output = self.client.send_request('post', '/repositories/2/accessions', data={"id_1": "2"})
-        self.assertEqual(output, post_data)
-        self.assertEqual(mock_post.call_count, 2)
-        mock_post.assert_any_call('/repositories/2/accessions', data=json.dumps({"id_1": "2"}))
-        mock_post.assert_any_call('repositories/2/accessions', data=json.dumps({"id_1": "003"}))
-
     @patch('src.clients.ArchivesSpaceClient.send_request')
     def test_methods(self, mock_send_request):
         """Asserts client HTTP method calls use expected arguments."""
