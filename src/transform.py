@@ -71,6 +71,7 @@ class PackageTransformer(object):
                 group_created = self.create_archival_objects_group(accession_created, aurora_accession_data)
                 ao_created = self.create_archival_object(group_created)
                 package_data = ao_created
+            print(package_data)
             do_created = self.create_digital_object(package_data)
             self.update_archival_object(do_created)
             self.update_source_package(do_created)
