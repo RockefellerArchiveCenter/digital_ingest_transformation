@@ -130,13 +130,13 @@ class AuroraClient:
         return f"/{path}/{identifier}/"
 
     def update(self, raw_url, data, **kwargs):
-        """Sends an HTTP POST request."""
+        """Sends an HTTP PUT request."""
         url = self.strip_url(raw_url)
         resp = self.client.put(url, data=json.dumps(data), headers={"Content-Type": "application/json"}, **kwargs)
         if resp.status_code == 200:
             return resp.json()
         else:
-            raise AuroraClientError(f"Error sending request {url} to Aurora: {resp.status_code} {resp.text}")
+            raise AuroraClientError(f"Error sending PUT request {url} to Aurora with data {data}: {resp.status_code} {resp.text}")
 
     def get(self, raw_url, **kwargs):
         """Sends an HTTP GET request."""
@@ -145,7 +145,7 @@ class AuroraClient:
         if resp.status_code == 200:
             return resp.json()
         else:
-            raise AuroraClientError(f"Error sending request {url} to Aurora: {resp.status_code} {resp.text}")
+            raise AuroraClientError(f"Error sending GET request {url} to Aurora: {resp.status_code} {resp.text}")
 
 
 class ZodiacClient(object):
