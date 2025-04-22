@@ -41,7 +41,6 @@ class PackageTransformer(object):
         self.sns_role_arn = sns_role_arn
         self.ssm_role_arn = ssm_role_arn
         self.config = self.get_config(environment)
-        logging.info(self.config)
         self.archivematica_client = AMClient(
             ss_api_key=self.config['ARCHIVEMATICA_SS_API_KEY'],
             ss_user_name=self.config['ARCHIVEMATICA_SS_USER_NAME'],
@@ -398,32 +397,28 @@ class PackageTransformer(object):
         """
         client = get_client_with_role('sns', self.sns_role_arn)
         tb = ''.join(traceback.format_exception(exception)[:-1])
-        print(tb)
-        try:
-            client.publish(
-                TopicArn=self.sns_topic,
-                MessageGroupId=self.service_name,
-                Message=tb,
-                MessageAttributes={
-                    'package_id': {
-                        'DataType': 'String',
-                        'StringValue': self.package_id,
-                    },
-                    'service': {
-                        'DataType': 'String',
-                        'StringValue': self.service_name,
-                    },
-                    'outcome': {
-                        'DataType': 'String',
-                        'StringValue': 'FAILURE',
-                    },
-                    'message': {
-                        'DataType': 'String',
-                        'StringValue': str(exception),
-                    }
-                })
-        except Exception as e:
-            print(e)
+        client.publish(
+            TopicArn=self.sns_topic,
+            MessageGroupId=self.service_name,
+            Message=tb,
+            MessageAttributes={
+                'package_id': {
+                    'DataType': 'String',
+                    'StringValue': self.package_id,
+                },
+                'service': {
+                    'DataType': 'String',
+                    'StringValue': self.service_name,
+                },
+                'outcome': {
+                    'DataType': 'String',
+                    'StringValue': 'FAILURE',
+                },
+                'message': {
+                    'DataType': 'String',
+                    'StringValue': str(exception),
+                }
+            })
         logging.debug('Failure notification delivered.')
 
 
