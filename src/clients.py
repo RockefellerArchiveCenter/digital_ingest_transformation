@@ -122,7 +122,6 @@ class AuroraClient:
             oauth_client_secret=oauth_client_secret)
         if not self.client.authorize_oauth():
             raise AuroraClientError("Could not authorize Client ID {} in Aurora".format(oauth_client_id))
-        print(self.client.session.headers)
 
     def strip_url(self, raw_url):
         """Strips the hostname off the URL so that the configured hostname is used."""
