@@ -204,7 +204,7 @@ class AuroraClientTests(TestCase):
         mock_put.return_value = MockResponse({}, 404, text="Not Found")
         with self.assertRaises(AuroraClientError) as err:
             self.client.update("https://example.org/accessions/1", data)
-        self.assertEqual(str(err.exception), "Error sending request /accessions/1/ to Aurora: 404 Not Found")
+        self.assertEqual(str(err.exception), "Error sending PUT request /accessions/1/ to Aurora with data {'foo': 'bar'}: 404 Not Found")
 
     @patch('electronbonder.client.ElectronBond.get')
     def test_get(self, mock_get):
@@ -221,7 +221,7 @@ class AuroraClientTests(TestCase):
         mock_get.return_value = MockResponse({}, 404, text="Not Found")
         with self.assertRaises(AuroraClientError) as err:
             self.client.get("https://example.org/accessions/1")
-        self.assertEqual(str(err.exception), "Error sending request /accessions/1/ to Aurora: 404 Not Found")
+        self.assertEqual(str(err.exception), "Error sending GET request /accessions/1/ to Aurora: 404 Not Found")
 
 
 class ZodiacClientTests(TestCase):
