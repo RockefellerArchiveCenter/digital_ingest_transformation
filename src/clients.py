@@ -99,6 +99,7 @@ class ArchivesSpaceClient(object):
             query = json.dumps({"query": {"field": "four_part_id", "value": current_year, "jsonmodel_type": "field_query"}})
             r = self.client.get("repositories/{}/search".format(self.repo_id), params={"page": 1,
                                 "type[]": "accession", "sort": "identifier desc", "aq": query}).json()
+            print(r)
             number = "1"
             if r.get("total_hits") >= 1:
                 id_parts = r["results"][0]["identifier"].split("-")
