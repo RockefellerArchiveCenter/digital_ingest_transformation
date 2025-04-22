@@ -41,6 +41,7 @@ class PackageTransformer(object):
         self.sns_role_arn = sns_role_arn
         self.ssm_role_arn = ssm_role_arn
         self.config = self.get_config(environment)
+        logging.info(self.config)
         self.archivematica_client = AMClient(
             ss_api_key=self.config['ARCHIVEMATICA_SS_API_KEY'],
             ss_user_name=self.config['ARCHIVEMATICA_SS_USER_NAME'],
