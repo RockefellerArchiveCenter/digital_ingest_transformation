@@ -22,7 +22,7 @@ from src.resources.source import (SourceAccession, SourceCreator,
                                   SourceRightsStatement)
 
 logging.basicConfig(
-    level=int(getenv('LOGGING_LEVEL', logging.DEBUG)),
+    level=int(getenv('LOGGING_LEVEL', logging.INFO)),
     format='%(filename)s::%(funcName)s::%(lineno)s %(message)s')
 
 
@@ -64,11 +64,13 @@ class PackageTransformer(object):
         try:
             self.deliver_start_notification()
             package_data = self.zodiac_client.get(f'packages/{self.package_id}')
+            print(package_data)
             if self.is_aurora_package(package_data):
                 aurora_package_data = self.aurora_client.get(package_data['identifiers']['aurora_package'])
                 aurora_accession_data = self.aurora_client.get(aurora_package_data['accession'])
                 accession_created = self.create_accession(aurora_package_data, aurora_accession_data)
                 group_created = self.create_archival_objects_group(accession_created, aurora_accession_data)
+                print(group_created)
                 ao_created = self.create_archival_object(group_created)
                 package_data = ao_created
             do_created = self.create_digital_object(package_data)
