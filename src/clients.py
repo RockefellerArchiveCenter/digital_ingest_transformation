@@ -171,7 +171,7 @@ class ZodiacClient(object):
         """Makes an HTTP PUT request"""
         url = f'{self.baseurl}/{uri.lstrip("/").rstrip("/")}/'
         try:
-            resp = self.session.patch(url, data=data)
+            resp = self.session.patch(url, json=data)
             resp.raise_for_status()
             return resp.json()
         except HTTPError:
