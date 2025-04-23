@@ -258,7 +258,7 @@ class ZodiacClientTests(TestCase):
 
         output = self.client.patch("/this/is/a/url", {})
         self.assertEqual(output, data)
-        mock_put.assert_called_once_with("https://zodiac.org/this/is/a/url/", data={})  # appends trailing slash
+        mock_put.assert_called_once_with("https://zodiac.org/this/is/a/url/", json={})  # appends trailing slash
 
         mock_put.return_value = MockResponse({}, 404, text="Not found")
         with self.assertRaises(ZodiacClientError) as err:
