@@ -251,16 +251,16 @@ class ZodiacClientTests(TestCase):
             self.client.get("/this/is/a/url")
         self.assertEqual(str(err.exception), "Error fetching url https://zodiac.org/this/is/a/url: 404 Not found")
 
-    @patch('src.clients.Session.put')
-    def test_put(self, mock_put):
+    @patch('src.clients.Session.patch')
+    def test_patch(self, mock_put):
         data = {"foo": "bar"}
         mock_put.return_value.json.return_value = data
 
-        output = self.client.put("/this/is/a/url", {})
+        output = self.client.patch("/this/is/a/url", {})
         self.assertEqual(output, data)
         mock_put.assert_called_once_with("https://zodiac.org/this/is/a/url/", data={})  # appends trailing slash
 
         mock_put.return_value = MockResponse({}, 404, text="Not found")
         with self.assertRaises(ZodiacClientError) as err:
-            self.client.put("/this/is/a/url", {})
+            self.client.patch("/this/is/a/url", {})
         self.assertEqual(str(err.exception), "Error updating data at url https://zodiac.org/this/is/a/url/: 404 Not found")

@@ -330,7 +330,7 @@ class PackageTransformer(object):
             package_data['archivesspace_parent_identifier'] = package_data['identifiers']['archivesspace_group']
             package_data['process_status'] = self.aurora_package_complete_status
             self.aurora_client.update(package_data['identifiers']['aurora_package'], package_data)
-        self.zodiac_client.put(f'/packages/{self.package_id}', package_data)
+        self.zodiac_client.patch(f'/packages/{self.package_id}', package_data)
 
     def deliver_start_notification(self):
         client = get_client_with_role('sns', self.sns_role_arn)

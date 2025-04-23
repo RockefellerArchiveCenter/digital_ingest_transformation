@@ -308,7 +308,7 @@ class TransformMethodTest(TestCase):
         mock_update.assert_called_once_with(package_data['identifiers']['archivesspace_archival_object'], transformed_as_archival_object_digitization)
 
     @patch('src.clients.AuroraClient.update')
-    @patch('src.clients.ZodiacClient.put')
+    @patch('src.clients.ZodiacClient.patch')
     def test_update_source_package(self, mock_zodiac_update, mock_aurora_update):
         """Asserts attributes are set correctly."""
         package_url = "https://aurora.rockarch.org/api/transfers/1"
