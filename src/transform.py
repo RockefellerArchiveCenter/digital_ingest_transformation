@@ -64,14 +64,12 @@ class PackageTransformer(object):
         try:
             self.deliver_start_notification()
             package_data = self.zodiac_client.get(f'packages/{self.package_id}')
-            print(package_data)
             if self.is_aurora_package(package_data):
                 aurora_package_data = self.aurora_client.get(package_data['identifiers']['aurora_package'])
                 aurora_package_data['identifiers'] = package_data['identifiers']
                 aurora_accession_data = self.aurora_client.get(aurora_package_data['accession'])
                 accession_created = self.create_accession(aurora_package_data, aurora_accession_data)
                 group_created = self.create_archival_objects_group(accession_created, aurora_accession_data)
-                print(group_created)
                 ao_created = self.create_archival_object(group_created)
                 package_data = ao_created
             do_created = self.create_digital_object(package_data)
@@ -265,7 +263,7 @@ class PackageTransformer(object):
             "file_versions": [
                 {
                     "file_uri": archivematica_data['resource_uri'],
-                    "use_statement": 'aip'
+                    "use_statement": 'master'
                 }
             ]
         }
@@ -274,11 +272,11 @@ class PackageTransformer(object):
             data['file_versions'] += [
                 {
                     "file_uri": f"{self.config['IIIF_MANIFEST_BASEURL'].rstrip('/')}/{dimes_id}",
-                    "use_statement": 'iiif_manifest'
+                    "use_statement": 'image-service'
                 },
                 {
                     "file_uri": f"{self.config['DOWNLOAD_BASEURL'].rstrip('/')}/{dimes_id}",
-                    "use_statement": 'download'
+                    "use_statement": 'service-edited'
                 }
             ]
         transformed = get_transformed_object(data, SourceDigitalObject, SourceArchivematicaPackageToDigitalObject)

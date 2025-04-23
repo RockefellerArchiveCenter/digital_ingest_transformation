@@ -6,17 +6,17 @@
     "file_versions": [
         {
             "file_uri": "/aips/0a9c6171-a18d-4ff6-b9e7-bef01aaded10",
-            "use_statement": "aip",
+            "use_statement": "master",
             "$": "src.resources.source.SourceFileVersion"
         },
         {
             "file_uri": "https://iiif.rockarch.org/manifests/C24WFRMrV9mSi9NcfXRo3x",
-            "use_statement": "iiif_manifest",
+            "use_statement": "image-service",
             "$": "src.resources.source.SourceFileVersion"
         },
         {
             "file_uri": "https://iiif.rockarch.org/pdfs/C24WFRMrV9mSi9NcfXRo3x",
-            "use_statement": "download",
+            "use_statement": "service-edited",
             "$": "src.resources.source.SourceFileVersion"
         }
     ],
