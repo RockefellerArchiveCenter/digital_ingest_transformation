@@ -73,7 +73,6 @@ class PackageTransformer(object):
                 ao_created = self.create_archival_object(group_created)
                 package_data = ao_created
             do_created = self.create_digital_object(package_data)
-            self.update_archival_object(do_created)
             self.update_source_package(do_created)
             self.deliver_success_notification(do_created)
             logging.info(f'Data from package {self.package_id} transformed and saved.')
