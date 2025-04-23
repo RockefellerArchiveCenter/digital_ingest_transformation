@@ -384,7 +384,7 @@ class PackageTransformer(object):
                 },
                 'message': {
                     'DataType': 'String',
-                    'StringValue': f'Package {self.package_id} successfully discovered.',
+                    'StringValue': f'Data from package {self.package_id} transformed and saved.',
                 },
             })
         logging.debug('Success notification delivered.')
