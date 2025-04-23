@@ -101,12 +101,11 @@ class TransformMethodTest(TestCase):
     @patch('src.transform.PackageTransformer.create_archival_objects_group')
     @patch('src.transform.PackageTransformer.create_archival_object')
     @patch('src.transform.PackageTransformer.create_digital_object')
-    @patch('src.transform.PackageTransformer.update_archival_object')
     @patch('src.transform.PackageTransformer.update_source_package')
     @patch('src.transform.PackageTransformer.deliver_success_notification')
     @patch('src.transform.PackageTransformer.deliver_failure_notification')
     @patch('src.transform.PackageTransformer.deliver_start_notification')
-    def test_run(self, mock_start_message, mock_failure_message, mock_success_message, mock_update_source, mock_update_ao,
+    def test_run(self, mock_start_message, mock_failure_message, mock_success_message, mock_update_source,
                  mock_do, mock_ao, mock_group, mock_accession, mock_aurora_get, mock_package_data):
         """Asserts logic for digitization package."""
         accession_uri = "https://aurora.dev.rockarch.org/api/accessions/21"
@@ -124,14 +123,13 @@ class TransformMethodTest(TestCase):
         mock_start_message.assert_called_once()
         mock_package_data.assert_called_once_with(f'packages/{self.transformer.package_id}')
         mock_do.assert_called_once_with(package_data)
-        mock_update_ao.assert_called_once_with(do_created)
         mock_update_source.assert_called_once_with(do_created)
         mock_success_message.assert_called_once_with(do_created)
 
         for m in [mock_aurora_get, mock_accession, mock_group, mock_ao, mock_failure_message]:
             m.assert_not_called()
 
-        for m in [mock_do, mock_update_ao, mock_update_source, mock_success_message, mock_package_data, mock_start_message]:
+        for m in [mock_do, mock_update_source, mock_success_message, mock_package_data, mock_start_message]:
             m.reset_mock()
 
         """Asserts logic for Aurora package."""
@@ -154,7 +152,6 @@ class TransformMethodTest(TestCase):
         mock_start_message.assert_called_once()
         mock_package_data.assert_called_once_with(f'packages/{self.transformer.package_id}')
         mock_do.assert_called_once_with(ao_created)
-        mock_update_ao.assert_called_once_with(do_created)
         mock_update_source.assert_called_once_with(do_created)
         mock_success_message.assert_called_once_with(do_created)
         mock_aurora_get.assert_has_calls([
