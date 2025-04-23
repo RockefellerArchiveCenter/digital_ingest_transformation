@@ -6,7 +6,7 @@
     "file_versions": [
         {
             "file_uri": "/aips/0a9c6171-a18d-4ff6-b9e7-bef01aaded10",
-            "use_statement": "aip",
+            "use_statement": "master",
             "$": "src.resources.source.SourceFileVersion"
         }
     ],
