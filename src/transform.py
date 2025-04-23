@@ -283,7 +283,7 @@ class PackageTransformer(object):
         do_uri = self.aspace_client.create(transformed, "digital object").get("uri")
 
         """Update archival object in ArchivesSpace"""
-        self.update_archival_object(archival_object, do_uri)
+        self.update_archival_object(package_data, archival_object, do_uri)
 
         digital_objects = package_data.get('identifiers', {}).get('archivesspace_digital_objects', [])
         digital_objects.append(do_uri)

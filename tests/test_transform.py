@@ -280,7 +280,7 @@ class TransformMethodTest(TestCase):
         self.assertEqual(output, returned_data)
         mock_retrieve.assert_called_once_with(package_data['identifiers']['archivesspace_archival_object'])
         mock_create.assert_called_once_with(transformed_data, 'digital object')
-        mock_update_ao.assert_called_once_with(as_archival_object, do_uri)
+        mock_update_ao.assert_called_once_with(package_data, as_archival_object, do_uri)
         for m in [mock_retrieve, mock_create, mock_update_ao]:
             m.reset_mock()
 
@@ -289,7 +289,7 @@ class TransformMethodTest(TestCase):
         self.assertEqual(output, returned_data_digitization)
         mock_retrieve.assert_called_once_with(package_data['identifiers']['archivesspace_archival_object'])
         mock_create.assert_called_once_with(transformed_data_digitization, 'digital object')
-        mock_update_ao.assert_called_once_with(as_archival_object, do_uri)
+        mock_update_ao.assert_called_once_with(package_data_digitization, as_archival_object, do_uri)
 
     @patch('src.clients.ArchivesSpaceClient.update')
     def test_update_archival_object(self, mock_update):
