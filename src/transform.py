@@ -262,7 +262,7 @@ class PackageTransformer(object):
             "file_versions": [
                 {
                     "file_uri": archivematica_data['resource_uri'],
-                    "use_statement": 'master'
+                    "use_statement": 'aip'
                 }
             ]
         }
@@ -271,11 +271,11 @@ class PackageTransformer(object):
             data['file_versions'] += [
                 {
                     "file_uri": f"{self.config['IIIF_MANIFEST_BASEURL'].rstrip('/')}/{dimes_id}",
-                    "use_statement": 'image-service'
+                    "use_statement": 'iiif-manifest'
                 },
                 {
                     "file_uri": f"{self.config['DOWNLOAD_BASEURL'].rstrip('/')}/{dimes_id}",
-                    "use_statement": 'service-edited'
+                    "use_statement": 'download'
                 }
             ]
         transformed = get_transformed_object(data, SourceDigitalObject, SourceArchivematicaPackageToDigitalObject)
