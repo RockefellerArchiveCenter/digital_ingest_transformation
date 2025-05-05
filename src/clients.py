@@ -42,12 +42,6 @@ class ArchivesSpaceClient(object):
         if r.status_code == 200:
             return r.json()
         else:
-            if r.json()["error"].get("id_0"):
-                """Account for indexing delays by bumping up to the next accession number."""
-                id_1 = int(data["id_1"])
-                id_1 += 1
-                data["id_1"] = str(id_1).zfill(3)
-                return self.create(data, "accession")
             raise ArchivesSpaceClientError("Error sending {} request to {}: {}".format(method, url, r.json()["error"]))
 
     def retrieve(self, url, **kwargs):
@@ -136,13 +130,13 @@ class AuroraClient:
         return f"/{path}/{identifier}/"
 
     def update(self, raw_url, data, **kwargs):
-        """Sends an HTTP POST request."""
+        """Sends an HTTP PUT request."""
         url = self.strip_url(raw_url)
         resp = self.client.put(url, data=json.dumps(data), headers={"Content-Type": "application/json"}, **kwargs)
         if resp.status_code == 200:
             return resp.json()
         else:
-            raise AuroraClientError(f"Error sending request {url} to Aurora: {resp.status_code} {resp.text}")
+            raise AuroraClientError(f"Error sending PUT request {url} to Aurora with data {data}: {resp.status_code} {resp.text}")
 
     def get(self, raw_url, **kwargs):
         """Sends an HTTP GET request."""
@@ -151,7 +145,7 @@ class AuroraClient:
         if resp.status_code == 200:
             return resp.json()
         else:
-            raise AuroraClientError(f"Error sending request {url} to Aurora: {resp.status_code} {resp.text}")
+            raise AuroraClientError(f"Error sending GET request {url} to Aurora: {resp.status_code} {resp.text}")
 
 
 class ZodiacClient(object):
@@ -173,11 +167,11 @@ class ZodiacClient(object):
         except HTTPError:
             raise ZodiacClientError(f"Error fetching url {url}: {resp.status_code} {resp.text}")
 
-    def put(self, uri, data):
+    def patch(self, uri, data):
         """Makes an HTTP PUT request"""
         url = f'{self.baseurl}/{uri.lstrip("/").rstrip("/")}/'
         try:
-            resp = self.session.put(url, data=data)
+            resp = self.session.patch(url, json=data)
             resp.raise_for_status()
             return resp.json()
         except HTTPError:

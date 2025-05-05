@@ -11,7 +11,7 @@
         },
         {
             "file_uri": "https://iiif.rockarch.org/manifests/C24WFRMrV9mSi9NcfXRo3x",
-            "use_statement": "iiif_manifest",
+            "use_statement": "iiif-manifest",
             "$": "src.resources.source.SourceFileVersion"
         },
         {

@@ -8,18 +8,18 @@ import shortuuid
 from amclient import AMClient, errors
 from odin.codecs import json_codec
 
-from .clients import ArchivesSpaceClient, AuroraClient, ZodiacClient
-from .helpers import (get_client_with_role, get_transformed_object,
-                      handle_open_dates)
-from .mappings import (SourceAccessionToArchivesSpaceAccession,
-                       SourceAccessionToGroupingComponent,
-                       SourceArchivematicaPackageToDigitalObject,
-                       SourcePackageToComponent,
-                       SourceRightsStatementToArchivesSpaceRightsStatement,
-                       map_agents)
-from .resources.source import (SourceAccession, SourceCreator,
-                               SourceDigitalObject, SourcePackage,
-                               SourceRightsStatement)
+from src.clients import ArchivesSpaceClient, AuroraClient, ZodiacClient
+from src.helpers import (get_client_with_role, get_transformed_object,
+                         handle_open_dates)
+from src.mappings import (SourceAccessionToArchivesSpaceAccession,
+                          SourceAccessionToGroupingComponent,
+                          SourceArchivematicaPackageToDigitalObject,
+                          SourcePackageToComponent,
+                          SourceRightsStatementToArchivesSpaceRightsStatement,
+                          map_agents)
+from src.resources.source import (SourceAccession, SourceCreator,
+                                  SourceDigitalObject, SourcePackage,
+                                  SourceRightsStatement)
 
 logging.basicConfig(
     level=int(getenv('LOGGING_LEVEL', logging.INFO)),
@@ -62,20 +62,22 @@ class PackageTransformer(object):
     def run(self):
         """Main class method which calls all other methods."""
         try:
+            self.deliver_start_notification()
             package_data = self.zodiac_client.get(f'packages/{self.package_id}')
             if self.is_aurora_package(package_data):
                 aurora_package_data = self.aurora_client.get(package_data['identifiers']['aurora_package'])
-                aurora_accession_data = self.aurora_client.get(package_data['aurora_accession_identifier'])
+                aurora_package_data['identifiers'] = package_data['identifiers']
+                aurora_accession_data = self.aurora_client.get(aurora_package_data['accession'])
                 accession_created = self.create_accession(aurora_package_data, aurora_accession_data)
                 group_created = self.create_archival_objects_group(accession_created, aurora_accession_data)
                 ao_created = self.create_archival_object(group_created)
                 package_data = ao_created
             do_created = self.create_digital_object(package_data)
-            self.update_archival_object(do_created)
             self.update_source_package(do_created)
             self.deliver_success_notification(do_created)
             logging.info(f'Data from package {self.package_id} transformed and saved.')
         except Exception as err:
+            logging.error(err)
             self.deliver_failure_notification(err)
 
     def get_config(self, environment):
@@ -91,17 +93,14 @@ class PackageTransformer(object):
         configuration = {}
         ssm_client = get_client_with_role('ssm', self.ssm_role_arn)
         try:
-            param_details = ssm_client.get_parameters_by_path(
-                Path=ssm_parameter_path,
-                Recursive=False,
-                WithDecryption=True)
-
-            for param in param_details.get('Parameters', []):
-                param_path_array = param.get('Name').split("/")
-                section_position = len(param_path_array) - 1
-                section_name = param_path_array[section_position]
-                configuration[section_name] = param.get('Value')
-
+            paginator = ssm_client.get_paginator('get_parameters_by_path')
+            response_iterator = paginator.paginate(Path=ssm_parameter_path)
+            for page in response_iterator:
+                for entry in page['Parameters']:
+                    param_path_array = entry.get('Name').split("/")
+                    section_position = len(param_path_array) - 1
+                    section_name = param_path_array[section_position]
+                    configuration[section_name] = entry.get('Value')
         except BaseException:
             print("Encountered an error loading config from SSM.")
             traceback.print_exc()
@@ -174,7 +173,8 @@ class PackageTransformer(object):
             'archivesspace_accession': as_accession_uri,
             'archivesspace_resource': as_resource_uri
         }
-        package_data.setdefault('identifiers', {}).update(identifiers)
+        package_data.setdefault('identifiers', {})
+        package_data['identifiers'].update(identifiers)
         logging.debug(f'Accession {as_accession_uri} created for package {package_data["identifier"]}')
         return package_data
 
@@ -203,7 +203,8 @@ class PackageTransformer(object):
             accession_data['archivesspace_group_identifier'] = as_group_uri
             self.aurora_client.update(accession_data['url'], accession_data)
 
-        package_data.setdefault('identifiers', {}).update({'archivesspace_group': as_group_uri})
+        package_data.setdefault('identifiers', {})
+        package_data['identifiers'].update({'archivesspace_group': as_group_uri})
         logging.debug(f'Grouping component {as_group_uri} created for package {package_data["identifier"]}')
         return package_data
 
@@ -233,7 +234,8 @@ class PackageTransformer(object):
             package_data['archivesspace_identifier'] = as_ao_uri
             self.aurora_client.update(package_data['identifiers']['aurora_package'], package_data)
 
-        package_data.setdefault('identifiers', {}).update({'archivesspace_archival_object': as_ao_uri})
+        package_data.setdefault('identifiers', {})
+        package_data['identifiers'].update({'archivesspace_archival_object': as_ao_uri})
         logging.debug(f'Archival object {as_ao_uri} created for package {package_data["identifier"]}')
         return package_data
 
@@ -269,7 +271,7 @@ class PackageTransformer(object):
             data['file_versions'] += [
                 {
                     "file_uri": f"{self.config['IIIF_MANIFEST_BASEURL'].rstrip('/')}/{dimes_id}",
-                    "use_statement": 'iiif_manifest'
+                    "use_statement": 'iiif-manifest'
                 },
                 {
                     "file_uri": f"{self.config['DOWNLOAD_BASEURL'].rstrip('/')}/{dimes_id}",
@@ -280,11 +282,12 @@ class PackageTransformer(object):
         do_uri = self.aspace_client.create(transformed, "digital object").get("uri")
 
         """Update archival object in ArchivesSpace"""
-        self.update_archival_object(archival_object, do_uri)
+        self.update_archival_object(package_data, archival_object, do_uri)
 
         digital_objects = package_data.get('identifiers', {}).get('archivesspace_digital_objects', [])
         digital_objects.append(do_uri)
-        package_data.setdefault('identifiers', {}).update({'archivesspace_digital_objects': digital_objects})
+        package_data.setdefault('identifiers', {})
+        package_data['identifiers'].update({'archivesspace_digital_objects': digital_objects})
         logging.debug(f'Digital object {do_uri} created for package {package_data["identifier"]}')
         return package_data
 
@@ -327,7 +330,34 @@ class PackageTransformer(object):
             package_data['archivesspace_parent_identifier'] = package_data['identifiers']['archivesspace_group']
             package_data['process_status'] = self.aurora_package_complete_status
             self.aurora_client.update(package_data['identifiers']['aurora_package'], package_data)
-        self.zodiac_client.put(f'/packages/{self.package_id}', package_data)
+        self.zodiac_client.patch(f'/packages/{self.package_id}', package_data)
+
+    def deliver_start_notification(self):
+        client = get_client_with_role('sns', self.sns_role_arn)
+        client.publish(
+            TopicArn=self.sns_topic,
+            MessageGroupId=f'{self.service_name}-{self.package_id}',
+            MessageDeduplicationId=f'{self.service_name}-{self.package_id}-start',
+            Message=f'Transformation for {self.package_id} started.',
+            MessageAttributes={
+                'package_id': {
+                    'DataType': 'String',
+                    'StringValue': self.package_id,
+                },
+                'service': {
+                    'DataType': 'String',
+                    'StringValue': self.service_name,
+                },
+                'outcome': {
+                    'DataType': 'String',
+                    'StringValue': 'STARTED',
+                },
+                'message': {
+                    'DataType': 'String',
+                    'StringValue': f'Transformation for {self.package_id} started.',
+                }
+            })
+        logging.debug('Start notification delivered.')
 
     def deliver_success_notification(self, package_data):
         """Send SNS message about successful job.
@@ -338,7 +368,9 @@ class PackageTransformer(object):
         client = get_client_with_role('sns', self.sns_role_arn)
         client.publish(
             TopicArn=self.sns_topic,
-            Message=f'Package {self.package_id} successfully discovered.',
+            MessageGroupId=f'{self.service_name}-{self.package_id}',
+            MessageDeduplicationId=f'{self.service_name}-{self.package_id}-success',
+            Message=json.dumps(package_data),
             MessageAttributes={
                 'package_id': {
                     'DataType': 'String',
@@ -352,9 +384,9 @@ class PackageTransformer(object):
                     'DataType': 'String',
                     'StringValue': 'SUCCESS',
                 },
-                'package_data': {
+                'message': {
                     'DataType': 'String',
-                    'StringValue': json.dumps(package_data),
+                    'StringValue': f'Data from package {self.package_id} transformed and saved.',
                 },
             })
         logging.debug('Success notification delivered.')
@@ -369,7 +401,9 @@ class PackageTransformer(object):
         tb = ''.join(traceback.format_exception(exception)[:-1])
         client.publish(
             TopicArn=self.sns_topic,
-            Message=f'Package {self.package_id} failed during discovery.',
+            MessageGroupId=f'{self.service_name}-{self.package_id}',
+            MessageDeduplicationId=f'{self.service_name}-{self.package_id}-failure',
+            Message=tb,
             MessageAttributes={
                 'package_id': {
                     'DataType': 'String',
@@ -386,10 +420,6 @@ class PackageTransformer(object):
                 'message': {
                     'DataType': 'String',
                     'StringValue': str(exception),
-                },
-                'traceback': {
-                    'DataType': 'String',
-                    'StringValue': tb,
                 }
             })
         logging.debug('Failure notification delivered.')

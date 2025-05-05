@@ -76,15 +76,6 @@ class ArchivesSpaceClientTests(TestCase):
         mock_post.assert_called_once_with('/repositories/2/accessions', data=json.dumps({}))
         mock_post.reset_mock()
 
-        mock_post.side_effect = [
-            MockResponse({"error": {"id_0": "Field already exists"}}, 403),
-            MockResponse(post_data, 200)]
-        output = self.client.send_request('post', '/repositories/2/accessions', data={"id_1": "2"})
-        self.assertEqual(output, post_data)
-        self.assertEqual(mock_post.call_count, 2)
-        mock_post.assert_any_call('/repositories/2/accessions', data=json.dumps({"id_1": "2"}))
-        mock_post.assert_any_call('repositories/2/accessions', data=json.dumps({"id_1": "003"}))
-
     @patch('src.clients.ArchivesSpaceClient.send_request')
     def test_methods(self, mock_send_request):
         """Asserts client HTTP method calls use expected arguments."""
@@ -213,7 +204,7 @@ class AuroraClientTests(TestCase):
         mock_put.return_value = MockResponse({}, 404, text="Not Found")
         with self.assertRaises(AuroraClientError) as err:
             self.client.update("https://example.org/accessions/1", data)
-        self.assertEqual(str(err.exception), "Error sending request /accessions/1/ to Aurora: 404 Not Found")
+        self.assertEqual(str(err.exception), "Error sending PUT request /accessions/1/ to Aurora with data {'foo': 'bar'}: 404 Not Found")
 
     @patch('electronbonder.client.ElectronBond.get')
     def test_get(self, mock_get):
@@ -230,7 +221,7 @@ class AuroraClientTests(TestCase):
         mock_get.return_value = MockResponse({}, 404, text="Not Found")
         with self.assertRaises(AuroraClientError) as err:
             self.client.get("https://example.org/accessions/1")
-        self.assertEqual(str(err.exception), "Error sending request /accessions/1/ to Aurora: 404 Not Found")
+        self.assertEqual(str(err.exception), "Error sending GET request /accessions/1/ to Aurora: 404 Not Found")
 
 
 class ZodiacClientTests(TestCase):
@@ -260,16 +251,16 @@ class ZodiacClientTests(TestCase):
             self.client.get("/this/is/a/url")
         self.assertEqual(str(err.exception), "Error fetching url https://zodiac.org/this/is/a/url: 404 Not found")
 
-    @patch('src.clients.Session.put')
-    def test_put(self, mock_put):
+    @patch('src.clients.Session.patch')
+    def test_patch(self, mock_put):
         data = {"foo": "bar"}
         mock_put.return_value.json.return_value = data
 
-        output = self.client.put("/this/is/a/url", {})
+        output = self.client.patch("/this/is/a/url", {})
         self.assertEqual(output, data)
-        mock_put.assert_called_once_with("https://zodiac.org/this/is/a/url/", data={})  # appends trailing slash
+        mock_put.assert_called_once_with("https://zodiac.org/this/is/a/url/", json={})  # appends trailing slash
 
         mock_put.return_value = MockResponse({}, 404, text="Not found")
         with self.assertRaises(ZodiacClientError) as err:
-            self.client.put("/this/is/a/url", {})
+            self.client.patch("/this/is/a/url", {})
         self.assertEqual(str(err.exception), "Error updating data at url https://zodiac.org/this/is/a/url/: 404 Not found")
