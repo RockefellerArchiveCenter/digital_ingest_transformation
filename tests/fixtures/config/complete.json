@@ -2,6 +2,7 @@
     "ARCHIVEMATICA_SS_API_KEY": "am_api_key",
     "ARCHIVEMATICA_SS_USER_NAME": "am_user_name",
     "ARCHIVEMATICA_SS_URL": "am_url",
+    "ARCHIVEMATICA_TRANSFER_SOURCE_BUCKET": "rac-dev-am-transfer-source",
     "ZODIAC_BASEURL": "zodiac_baseurl",
     "AS_BASEURL": "as_baseurl",
     "AS_USERNAME": "as_username",

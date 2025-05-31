@@ -3,6 +3,11 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import call, patch
 
+import boto3
+import pytest
+from botocore.exceptions import ClientError
+from moto import mock_aws
+
 from src.helpers import handle_open_dates
 from src.transform import PackageTransformer
 
@@ -25,7 +30,7 @@ def json_from_fixture(fixture_name):
 class TransformInitTests(TestCase):
 
     def setUp(self):
-        self.args = ['dev', 'package_id', 'sns_topic', 'sns_role', 'ssm_role']
+        self.args = ['dev', 'package_id', 'sns_topic', 'sns_role', 'ssm_role', 's3_role']
 
     @patch('src.transform.PackageTransformer.get_config')
     @patch('src.clients.ZodiacClient.__init__')
@@ -76,6 +81,7 @@ class TransformInitTests(TestCase):
         self.assertEqual(transformer.sns_topic, self.args[2])
         self.assertEqual(transformer.sns_role_arn, self.args[3])
         self.assertEqual(transformer.ssm_role_arn, self.args[4])
+        self.assertEqual(transformer.s3_role_arn, self.args[5])
         mock_am.assert_called_once_with(ss_api_key=am_api_key, ss_user_name=am_user_name, ss_url=am_url)
         mock_aurora.assert_called_once_with(aurora_baseurl, aurora_oauth_client_baseurl, aurora_oauth_client_id, aurora_oauth_client_secret)
         mock_as.assert_called_once_with(as_baseurl, as_username, as_password, as_repo_id)
@@ -86,7 +92,7 @@ class TransformMethodTest(TestCase):
 
     def setUp(self):
         self.package_id = "package_id"
-        self.args = ['dev', self.package_id, 'sns_topic', 'sns_role', 'ssm_role']
+        self.args = ['dev', self.package_id, 'sns_topic', 'sns_role', 'ssm_role', 'arn:aws:role/digital-ingest-transformation-s3-role']
         with patch('src.clients.ArchivesSpaceClient.__init__') as as_init:
             as_init.return_value = None
             with patch('src.clients.AuroraClient.__init__') as aurora_init:
@@ -105,7 +111,8 @@ class TransformMethodTest(TestCase):
     @patch('src.transform.PackageTransformer.deliver_success_notification')
     @patch('src.transform.PackageTransformer.deliver_failure_notification')
     @patch('src.transform.PackageTransformer.deliver_start_notification')
-    def test_run(self, mock_start_message, mock_failure_message, mock_success_message, mock_update_source,
+    @patch('src.transform.PackageTransformer.clean_up_transfer_source')
+    def test_run(self, mock_clean_up, mock_start_message, mock_failure_message, mock_success_message, mock_update_source,
                  mock_do, mock_ao, mock_group, mock_accession, mock_aurora_get, mock_package_data):
         """Asserts logic for digitization package."""
         accession_uri = "https://aurora.dev.rockarch.org/api/accessions/21"
@@ -125,11 +132,12 @@ class TransformMethodTest(TestCase):
         mock_do.assert_called_once_with(package_data)
         mock_update_source.assert_called_once_with(do_created)
         mock_success_message.assert_called_once_with(do_created)
+        mock_clean_up.assert_called_once_with(self.transformer.package_id)
 
         for m in [mock_aurora_get, mock_accession, mock_group, mock_ao, mock_failure_message]:
             m.assert_not_called()
 
-        for m in [mock_do, mock_update_source, mock_success_message, mock_package_data, mock_start_message]:
+        for m in [mock_do, mock_update_source, mock_success_message, mock_package_data, mock_start_message, mock_clean_up]:
             m.reset_mock()
 
         """Asserts logic for Aurora package."""
@@ -161,16 +169,19 @@ class TransformMethodTest(TestCase):
         mock_accession.assert_called_once_with(package_data, accession_data)
         mock_group.assert_called_once_with(accession_created, accession_data)
         mock_ao.assert_called_once_with(group_created)
+        mock_clean_up.assert_called_once_with(self.transformer.package_id)
 
         mock_failure_message.assert_not_called()
 
         """Asserts behavior when exception is thrown"""
         exception = Exception("foo")
         mock_package_data.side_effect = exception
+        mock_clean_up.reset_mock()
 
         self.transformer.run()
 
         mock_failure_message.assert_called_once_with(exception)
+        mock_clean_up.assert_called_once_with(self.transformer.package_id)
 
     @patch('src.clients.AuroraClient.update')
     @patch('src.clients.ArchivesSpaceClient.next_accession_number')
@@ -343,6 +354,27 @@ class TransformMethodTest(TestCase):
         output = self.transformer.get_linked_agents(source_agents)
         self.assertEqual(output, transformed_agents)
         self.assertEqual(mock_get_or_create.call_count, len(source_agents))
+
+    @mock_aws
+    @patch('src.helpers.get_client_with_role')
+    def test_clean_up_transfer_source(self, mock_role):
+        s3 = boto3.client('s3', region_name='us-east-1')
+        mock_role.return_value = s3
+        bucket_name = self.transformer.config['ARCHIVEMATICA_TRANSFER_SOURCE_BUCKET']
+        s3.create_bucket(Bucket=bucket_name)
+        s3.put_object(
+            Bucket=bucket_name,
+            Key=f"{self.transformer.package_id}.tar.gz",
+            Body='')
+
+        self.transformer.clean_up_transfer_source(self.transformer.package_id)
+
+        with pytest.raises(ClientError) as err:
+            s3.head_object(
+                Bucket=bucket_name,
+                Key=f"{self.transformer.package_id}.tar.gz",
+            )
+        assert '404' in str(err)
 
 
 class HelperTests(TestCase):
