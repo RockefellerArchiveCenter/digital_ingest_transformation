@@ -132,7 +132,7 @@ class TransformMethodTest(TestCase):
         mock_do.assert_called_once_with(package_data)
         mock_update_source.assert_called_once_with(do_created)
         mock_success_message.assert_called_once_with(do_created)
-        mock_clean_up.assert_called_once_with(self.transformer.package_id)
+        mock_clean_up.assert_called_once_with(self.transformer.package_id, 'zodiac')
 
         for m in [mock_aurora_get, mock_accession, mock_group, mock_ao, mock_failure_message]:
             m.assert_not_called()
@@ -147,7 +147,7 @@ class TransformMethodTest(TestCase):
         accession_data = {"type": "accession"}
         accession_created = {"created": "accession"}
         group_created = {"created": "group"}
-        ao_created = {"created": "ao"}
+        ao_created = {"created": "ao", "origin": "aurora"}
         do_created = {"created": "do", "url": "foo", "origin": "aurora"}
         mock_aurora_get.side_effect = [package_data, accession_data]
         mock_accession.return_value = accession_created
@@ -169,7 +169,7 @@ class TransformMethodTest(TestCase):
         mock_accession.assert_called_once_with(package_data, accession_data)
         mock_group.assert_called_once_with(accession_created, accession_data)
         mock_ao.assert_called_once_with(group_created)
-        mock_clean_up.assert_called_once_with(self.transformer.package_id)
+        mock_clean_up.assert_called_once_with(self.transformer.package_id, 'zodiac')
 
         mock_failure_message.assert_not_called()
 
@@ -181,7 +181,7 @@ class TransformMethodTest(TestCase):
         self.transformer.run()
 
         mock_failure_message.assert_called_once_with(exception)
-        mock_clean_up.assert_called_once_with(self.transformer.package_id)
+        mock_clean_up.assert_not_called()  # not called here because package_data is not defined
 
     @patch('src.clients.AuroraClient.update')
     @patch('src.clients.ArchivesSpaceClient.next_accession_number')
@@ -361,18 +361,19 @@ class TransformMethodTest(TestCase):
         s3 = boto3.client('s3', region_name='us-east-1')
         mock_role.return_value = s3
         bucket_name = self.transformer.config['ARCHIVEMATICA_TRANSFER_SOURCE_BUCKET']
+        bucket_path = 'zodiac'
         s3.create_bucket(Bucket=bucket_name)
         s3.put_object(
             Bucket=bucket_name,
-            Key=f"{self.transformer.package_id}.tar.gz",
+            Key=f"{bucket_path}/{self.transformer.package_id}.tar.gz",
             Body='')
 
-        self.transformer.clean_up_transfer_source(self.transformer.package_id)
+        self.transformer.clean_up_transfer_source(self.transformer.package_id, bucket_path)
 
         with pytest.raises(ClientError) as err:
             s3.head_object(
                 Bucket=bucket_name,
-                Key=f"{self.transformer.package_id}.tar.gz",
+                Key=f"{bucket_path}/{self.transformer.package_id}.tar.gz",
             )
         assert '404' in str(err)
 
