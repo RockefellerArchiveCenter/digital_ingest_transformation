@@ -83,6 +83,7 @@ class PackageTransformer(object):
             self.deliver_failure_notification(err)
         finally:
             self.clean_up_transfer_source(self.package_id)
+            logging.info(f'Removed package {self.package_id} from Archivematica transfer source')
 
     def get_config(self, environment):
         """Fetch config values from Parameter Store.
@@ -435,9 +436,10 @@ class PackageTransformer(object):
             package_id (str): ID of package to remove
         """
         client = get_client_with_role('s3', self.s3_role_arn)
-        client.delete_object(
+        output = client.delete_object(
             Bucket=self.config['ARCHIVEMATICA_TRANSFER_SOURCE_BUCKET'],
             Key=f"{package_id}.tar.gz")
+        logging.info(output)
         logging.debug('Package deleted from Archivematica transfer source.')
 
 
