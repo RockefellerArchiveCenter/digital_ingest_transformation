@@ -34,12 +34,14 @@ class PackageTransformer(object):
                  package_id,
                  sns_topic,
                  sns_role_arn,
-                 ssm_role_arn):
+                 ssm_role_arn,
+                 s3_role_arn):
         self.service_name = 'digital_ingest_transformation'
         self.package_id = package_id
         self.sns_topic = sns_topic
         self.sns_role_arn = sns_role_arn
         self.ssm_role_arn = ssm_role_arn
+        self.s3_role_arn = s3_role_arn
         self.config = self.get_config(environment)
         self.archivematica_client = AMClient(
             ss_api_key=self.config['ARCHIVEMATICA_SS_API_KEY'],
@@ -79,6 +81,14 @@ class PackageTransformer(object):
         except Exception as err:
             logging.error(err)
             self.deliver_failure_notification(err)
+        finally:
+            try:
+                formatted_origin = package_data['origin'].replace(' ', '_').upper()
+                bucket_path = self.config.get(f'{formatted_origin}_TRANSFER_SOURCE_PATH')
+                self.clean_up_transfer_source(self.package_id, bucket_path)
+                logging.info(f'Removed package {self.package_id} from Archivematica transfer source')
+            except Exception as e:
+                logging.error(f'Error removing package {self.package_id} from Archivematica transfer source: {e}')
 
     def get_config(self, environment):
         """Fetch config values from Parameter Store.
@@ -424,6 +434,20 @@ class PackageTransformer(object):
             })
         logging.debug('Failure notification delivered.')
 
+    def clean_up_transfer_source(self, package_id, bucket_path):
+        """Removes package from Archivematica transfer source bucket.
+
+        Args:
+            package_id (str): ID of package to remove
+            bucket_path (str): path in bucket
+        """
+        client = get_client_with_role('s3', self.s3_role_arn)
+        object_key = f'{bucket_path}/{package_id}.tar.gz' if bucket_path else f'{package_id}.tar.gz'
+        client.delete_object(
+            Bucket=self.config['ARCHIVEMATICA_TRANSFER_SOURCE_BUCKET'],
+            Key=object_key)
+        logging.debug('Package deleted from Archivematica transfer source.')
+
 
 if __name__ == "__main__":
     environment = getenv('ENV')
@@ -431,10 +455,12 @@ if __name__ == "__main__":
     sns_topic = getenv("AWS_SNS_TOPIC")
     sns_role_arn = getenv("AWS_SNS_ROLE_ARN")
     ssm_role_arn = getenv("AWS_SSM_ROLE_ARN")
+    s3_role_arn = getenv("AWS_S3_ROLE_ARN")
     PackageTransformer(
         environment,
         package_id,
         sns_topic,
         sns_role_arn,
         ssm_role_arn,
+        s3_role_arn
     ).run()
