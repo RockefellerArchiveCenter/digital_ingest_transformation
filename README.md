@@ -14,6 +14,26 @@ docker build -t digital_ingest_transformation .
 docker run digital_ingest_transformation
 ```
 
+## Service Flow
+
+The service processes packages as follows:
+- Sends a start message to an SNS topic
+- Fetches package data from [Zodiac Backend API](https://github.com/RockefellerArchiveCenter/zodiac_backend)
+- If the package comes from [Aurora](https://github.com/RockefellerArchiveCenter/aurora):
+    - Gets data about the package and accession from Aurora
+    - Creates an accession record in ArchivesSpace
+    - Creates a record group component in ArchivesSpace
+    - Creates an archival object within that record group in ArchivesSpace
+- Creates a digital object in ArchivesSpace
+- Updates package data in Aurora and Zodiac Backend API with additional identifiers
+- Sends a success message to an SNS topic
+
+If errors are encountered during any of the above steps, the service:
+- Sends a failure message to an SNS topic
+
+Finally, the service will:
+- Remove the package from the Archivematica Transfer Source, which is expected to be an S3 bucket.
+
 ## Usage
 
 This repository is intended to be deployed as an ECS Task in AWS infrastructure.
