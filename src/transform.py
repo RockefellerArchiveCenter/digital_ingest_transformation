@@ -364,7 +364,7 @@ class PackageTransformer(object):
                 },
                 'message': {
                     'DataType': 'String',
-                    'StringValue': f'Transformation of package data started.',
+                    'StringValue': 'Transformation of package data started.',
                 }
             })
         logging.debug('Start notification delivered.')
@@ -396,7 +396,7 @@ class PackageTransformer(object):
                 },
                 'message': {
                     'DataType': 'String',
-                    'StringValue': f'Data from package transformed and saved.',
+                    'StringValue': 'Data from package transformed and saved.',
                 },
             })
         logging.debug('Success notification delivered.')
