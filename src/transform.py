@@ -168,7 +168,7 @@ class PackageTransformer(object):
             to_transform["linked_agents"] = self.get_linked_agents(
                 to_transform["creators"] + [{"name": to_transform["organization"], "type": "organization"}])
             to_transform["rights_statements"] = handle_open_dates(
-                to_transform.get("rights_statements", []))
+                to_transform.get("rights_statements") or [])
             transformed = get_transformed_object(to_transform, SourceAccession, SourceAccessionToArchivesSpaceAccession)
             as_accession_uri = self.aspace_client.create(transformed, "accession").get("uri")
 
@@ -205,7 +205,7 @@ class PackageTransformer(object):
             to_transform["level"] = "recordgrp"
             to_transform["linked_agents"] = self.get_linked_agents(
                 accession_data["creators"] + [{"name": accession_data["organization"], "type": "organization"}])
-            to_transform["rights_statements"] = handle_open_dates(package_data.get("rights_statements", []))
+            to_transform["rights_statements"] = handle_open_dates(package_data.get("rights_statements") or [])
             transformed = get_transformed_object(to_transform, SourceAccession, SourceAccessionToGroupingComponent)
             as_group_uri = self.aspace_client.create(transformed, "component").get("uri")
 
@@ -317,7 +317,7 @@ class PackageTransformer(object):
             package_data (dict): Updated package data
         """
         if not len(archival_object.get("rights_statements")) and not self.is_aurora_package(package_data):
-            rights_data = package_data.get("rights_statements", [])
+            rights_data = package_data.get("rights_statements") or []
             transformed_rights = get_transformed_object(
                 handle_open_dates(rights_data), SourceRightsStatement, SourceRightsStatementToArchivesSpaceRightsStatement)
             archival_object["rights_statements"] = transformed_rights
