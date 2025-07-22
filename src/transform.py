@@ -236,7 +236,7 @@ class PackageTransformer(object):
             to_transform["level"] = "file"
             to_transform["linked_agents"] = self.get_linked_agents(
                 package_data["metadata"]["record_creators"] + [{"name": package_data["metadata"]["source_organization"], "type": "organization"}])
-            to_transform["rights_statements"] = handle_open_dates(package_data.get("rights_statements", []))
+            to_transform["rights_statements"] = handle_open_dates(package_data.get("rights_statements") or [])
             transformed = get_transformed_object(to_transform, SourcePackage, SourcePackageToComponent)
             as_ao_uri = self.aspace_client.create(transformed, "component").get("uri")
 
