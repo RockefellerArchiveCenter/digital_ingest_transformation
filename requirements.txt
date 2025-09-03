@@ -4,7 +4,7 @@
 #
 #    pip-compile
 #
-amclient==1.4.0
+amclient==1.5.0
     # via -r requirements.in
 archivessnake==0.10.1
     # via -r requirements.in
@@ -14,17 +14,17 @@ aws-assume-role-lib==2.10.0
     # via -r requirements.in
 boltons==25.0.0
     # via archivessnake
-boto3==1.40.0
+boto3==1.40.22
     # via
     #   -r requirements.in
     #   aws-assume-role-lib
-botocore==1.40.0
+botocore==1.40.22
     # via
     #   boto3
     #   s3transfer
-certifi==2025.7.14
+certifi==2025.8.3
     # via requests
-charset-normalizer==3.4.2
+charset-normalizer==3.4.3
     # via requests
 electronbonder==2.2
     # via -r requirements.in
@@ -34,7 +34,7 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-more-itertools==10.7.0
+more-itertools==10.8.0
     # via archivessnake
 oauthlib==3.3.1
     # via requests-oauthlib
@@ -44,9 +44,9 @@ python-dateutil==2.9.0.post0
     # via botocore
 pyyaml==6.0.2
     # via archivessnake
-rapidfuzz==3.13.0
+rapidfuzz==3.14.0
     # via archivessnake
-requests==2.32.4
+requests==2.32.5
     # via
     #   -r requirements.in
     #   amclient
