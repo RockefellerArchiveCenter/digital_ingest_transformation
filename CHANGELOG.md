@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.2](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/compare/v1.0.1...v1.0.2) (2026-08-07)
+
+
+### Bug Fixes
+
+* **deps:** Scheduled dependency updates ([84b3929](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/commit/84b3929c6bcbd0ee7d59889a3952db88f49759f8))
+* **deps:** Scheduled dependency updates ([84b3929](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/commit/84b3929c6bcbd0ee7d59889a3952db88f49759f8))
+* **deps:** Scheduled dependency updates ([93e7f32](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/commit/93e7f3295e7635aa7ede2ccb2f216c236f20e3dc))
+* **deps:** Scheduled dependency updates ([93e7f32](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/commit/93e7f3295e7635aa7ede2ccb2f216c236f20e3dc))
+* **deps:** Scheduled dependency updates ([ee06d95](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/commit/ee06d9591a09ee7147a7897f5d8facb35f0a7e59))
+
 ## [1.0.1](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/compare/v1.0.0...v1.0.1) (2026-07-06)
 
 
