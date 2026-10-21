@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.5](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/compare/v1.0.4...v1.0.5) (2026-10-21)
+
+
+### Bug Fixes
+
+* update pip ([fe6041b](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/commit/fe6041b97bb82c1d03831fddf45e3e917c3bf3c6))
+* update pip ([fe6041b](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/commit/fe6041b97bb82c1d03831fddf45e3e917c3bf3c6))
+* update pip ([90b17aa](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/commit/90b17aa7bbda47826a265fd92a7418e7696c578e))
+* update pip ([90b17aa](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/commit/90b17aa7bbda47826a265fd92a7418e7696c578e))
+* update pip ([7d7e3c8](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/commit/7d7e3c8ed683cd634af7ff0900103253d6f8bf70))
+
 ## [1.0.4](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/compare/v1.0.3...v1.0.4) (2026-10-05)
 
 
