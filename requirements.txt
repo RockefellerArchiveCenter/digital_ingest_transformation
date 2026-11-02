@@ -8,19 +8,19 @@ aws-assume-role-lib==2.10.0
     # via -r requirements.in
 boltons==26.2.0
     # via archivessnake
-boto3==1.43.117
+boto3==1.43.123
     # via
     #   -r requirements.in
     #   aws-assume-role-lib
-botocore==1.43.117
+botocore==1.43.123
     # via
     #   boto3
     #   s3transfer
-certifi==2026.10.19
+certifi==2026.10.23
     # via requests
 charset-normalizer==3.5.2
     # via requests
-electronbonder==2.2.7
+electronbonder==2.2.8
     # via -r requirements.in
 idna==3.20
     # via requests
@@ -30,7 +30,7 @@ jmespath==1.1.0
     #   botocore
 more-itertools==11.2.1
     # via archivessnake
-oauthlib==4.0.0
+oauthlib==4.0.1
     # via requests-oauthlib
 odin==2.11
     # via -r requirements.in
