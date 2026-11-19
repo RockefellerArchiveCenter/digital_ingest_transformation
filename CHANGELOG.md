@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.7](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/compare/v1.0.6...v1.0.7) (2026-11-19)
+
+
+### Bug Fixes
+
+* update deploy ([82c8754](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/commit/82c8754ee90fa8114cbdf981031c071496c98145))
+* update deploy ([6463663](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/commit/64636638afa247e7887f16d052950df5dddeb74d))
+* update deploy ([f68b278](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/commit/f68b2781a97b1cf70dbe329c261ff27ee588bad6))
+
 ## [1.0.6](https://github.com/RockefellerArchiveCenter/digital_ingest_transformation/compare/v1.0.5...v1.0.6) (2026-11-02)
 
 
